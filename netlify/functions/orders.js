@@ -197,7 +197,7 @@ export async function handler(event) {
       
       // Envoyer l'email à l'admin UNIQUEMENT
       try {
-        const adminEmail = 'reminimohamedlamine@gmail.com'; // CHANGEZ CETTE ADRESSE PAR VOTRE EMAIL
+        const adminEmail = 'vdp.rungis@hotmail.com'; // CHANGEZ CETTE ADRESSE PAR VOTRE EMAIL
         
         await resend.emails.send({
           from: 'Les Vergers de Paris <onboarding@resend.dev>',

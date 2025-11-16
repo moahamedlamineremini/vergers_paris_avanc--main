@@ -67,17 +67,31 @@ export async function handler(event) {
         
         console.log(`Assigning ${products.length} products to client ${id}`);
         
-        // Assigner tous les produits au nouveau client en utilisant une seule requête
+        // Assigner tous les produits au nouveau client par lots de 100
         if (products.length > 0) {
-          // Construire les valeurs pour l'insertion en masse
-          const values = products.map(p => `('${id}', '${p.id}')`).join(',');
+          const batchSize = 100;
+          let assignedCount = 0;
           
-          // Insérer toutes les assignations en une seule requête
-          await sql.unsafe(`
-            INSERT INTO assignments (client_id, product_id)
-            VALUES ${values}
-            ON CONFLICT (client_id, product_id) DO NOTHING
-          `);
+          for (let i = 0; i < products.length; i += batchSize) {
+            const batch = products.slice(i, i + batchSize);
+            
+            // Préparer les promesses pour ce lot
+            const promises = batch.map(product => 
+              sql`
+                INSERT INTO assignments (client_id, product_id)
+                VALUES (${id}, ${product.id})
+                ON CONFLICT (client_id, product_id) DO NOTHING
+              `.catch(err => {
+                console.log(`Error assigning product ${product.id}:`, err.message);
+                return null;
+              })
+            );
+            
+            // Exécuter toutes les insertions du lot en parallèle
+            await Promise.all(promises);
+            assignedCount += batch.length;
+            console.log(`Assigned ${assignedCount}/${products.length} products`);
+          }
           
           console.log(`Successfully assigned all ${products.length} products to client ${id}`);
         }
@@ -94,7 +108,11 @@ export async function handler(event) {
       } catch (error) {
         console.error('Error creating client:', error);
         // Si une erreur survient, supprimer le client créé
-        await sql`DELETE FROM users WHERE id = ${id}`;
+        try {
+          await sql`DELETE FROM users WHERE id = ${id}`;
+        } catch (deleteError) {
+          console.error('Error deleting client after failure:', deleteError);
+        }
         throw error;
       }
     }

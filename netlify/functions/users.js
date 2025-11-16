@@ -61,30 +61,12 @@ export async function handler(event) {
         VALUES (${id}, ${username}, ${password}, 'client', ${email}, ${name}, ${phone}, ${address})
       `;
       
-      // Récupérer tous les produits
-      const products = await sql`SELECT id FROM products`;
-      
-      // Assigner tous les produits au nouveau client
-      if (products.length > 0) {
-        // Créer les insertions en masse
-        const assignmentValues = products.map(product => ({
-          client_id: id,
-          product_id: product.id
-        }));
-        
-        // Insérer toutes les assignations
-        for (const assignment of assignmentValues) {
-          try {
-            await sql`
-              INSERT INTO assignments (client_id, product_id)
-              VALUES (${assignment.client_id}, ${assignment.product_id})
-            `;
-          } catch (error) {
-            // Ignorer les doublons si l'assignation existe déjà
-            console.log(`Assignment already exists: ${assignment.client_id} - ${assignment.product_id}`);
-          }
-        }
-      }
+      // Assigner tous les produits au nouveau client EN UNE SEULE REQUÊTE
+      await sql`
+        INSERT INTO assignments (client_id, product_id)
+        SELECT ${id}, id FROM products
+        ON CONFLICT (client_id, product_id) DO NOTHING
+      `;
       
       const [newUser] = await sql`SELECT * FROM users WHERE id = ${id}`;
       return {

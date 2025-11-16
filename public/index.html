@@ -1,0 +1,2394 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Les Vergers de Paris</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f0fdf4 0%, #fff7ed 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .login-page {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo-icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            color: #15803d;
+            font-size: 32px;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #374151;
+            font-weight: 500;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+
+        input[type="checkbox"] {
+            width: auto;
+            padding: 0;
+            -webkit-appearance: checkbox;
+            -moz-appearance: checkbox;
+            appearance: checkbox;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #15803d;
+            box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(21, 128, 61, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(21, 128, 61, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            color: white;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .demo-accounts {
+            margin-top: 25px;
+            padding: 20px;
+            background: #fff7ed;
+            border-radius: 10px;
+        }
+
+        .demo-accounts p {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+
+        .demo-accounts p:first-child {
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .password-wrapper {
+            position: relative;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            padding: 5px;
+            color: #6b7280;
+            transition: color 0.3s;
+        }
+
+        .password-toggle:hover {
+            color: #374151;
+        }
+
+        .header {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            background: white;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            background: transparent;
+            color: #374151;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            background: #16a34a;
+            color: white;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+            padding: 30px;
+            margin-bottom: 25px;
+        }
+
+        .card-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 20px;
+        }
+
+        .grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .grid-2 {
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        }
+
+        .grid-3 {
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        }
+
+        .grid-4 {
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        }
+
+        .product-card, .client-card {
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 10px;
+            transition: all 0.3s;
+        }
+        
+        .client-card .flex-between > div:first-child {
+            word-break: break-word;
+            min-width: 0;
+        }
+
+        .product-card:hover {
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            transform: translateY(-3px);
+        }
+
+        .product-icon {
+            font-size: 24px;
+            margin-bottom: 6px;
+        }
+
+        .product-name {
+            font-weight: 700;
+            color: #1f2937;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .product-category {
+            color: #6b7280;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .cart-badge {
+            background: #fff7ed;
+            color: #f97316;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .cart-item {
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 8px;
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .quantity-btn {
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: #e5e7eb;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .quantity-btn:hover {
+            background: #d1d5db;
+        }
+
+        .quantity-display {
+            font-weight: 700;
+            min-width: 80px;
+            text-align: center;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+        .quantity-display:hover {
+            background: #f3f4f6;
+        }
+
+        .quantity-input {
+            width: 80px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 18px;
+            padding: 8px;
+            border: 2px solid #16a34a;
+            border-radius: 6px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .flex {
+            display: flex;
+        }
+
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .flex-center {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #ef4444;
+            font-size: 20px;
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-orange {
+            background: #fff7ed;
+            color: #f97316;
+        }
+
+        .assignment-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .assignment-btn {
+            padding: 10px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            opacity: 1;
+        }
+
+        .assignment-btn.active {
+            border-color: #16a34a;
+            background: #f0fdf4;
+            opacity: 1;
+        }
+
+        .assignment-btn:hover {
+            border-color: #d1d5db;
+            background: #f9fafb;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6b7280;
+        }
+
+        .layout-2col {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+        }
+
+        .sticky-cart {
+            position: sticky;
+            top: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 18px;
+            color: #6b7280;
+        }
+
+        @media (max-width: 968px) {
+    .layout-2col {
+        grid-template-columns: 1fr;
+    }
+
+    .container {
+        padding: 10px;
+    }
+
+    .header {
+        padding: 15px 10px;
+    }
+
+    .header-content {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+    }
+
+    .header-left, .header-right {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    h1 {
+        font-size: 24px !important;
+    }
+
+    .card {
+        padding: 20px 15px;
+    }
+
+    .card-title {
+        font-size: 18px;
+    }
+
+    .tabs {
+        flex-wrap: wrap;
+        padding: 8px;
+    }
+
+    .tab {
+        padding: 10px 16px;
+        font-size: 14px;
+        flex: 1 1 45%;
+    }
+
+    .grid-2, .grid-3, .grid-4 {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+
+    .product-card {
+        padding: 12px;
+    }
+
+    .product-icon {
+        font-size: 32px;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .btn {
+        padding: 12px;
+        font-size: 15px;
+    }
+
+    .login-card {
+        padding: 30px 20px;
+        margin: 15px;
+    }
+
+    .logo-icon {
+        font-size: 50px;
+    }
+
+    .sticky-cart {
+        position: static;
+    }
+
+    .assignment-grid {
+        grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    }
+
+    .cart-item {
+        padding: 12px;
+    }
+
+    .quantity-controls {
+        gap: 8px;
+    }
+
+    .quantity-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+    }
+
+    .icon-btn {
+        font-size: 24px;
+        padding: 8px;
+    }
+
+    .demo-accounts {
+        padding: 15px;
+        font-size: 11px;
+    }
+
+    .flex-between > h3 {
+        display: flex;
+        align-items: baseline;
+        flex-wrap: wrap;
+        gap: 0 8px;
+    }
+
+    .flex-between > h3, .flex-between > h3 span {
+         font-size: 16px !important;
+    }
+
+    .flex-between > h3 span {
+         font-size: 13px !important;
+    }
+
+    .client-card .flex-between {
+        align-items: flex-start;
+    }
+}
+
+        @media (max-width: 480px) {
+    h1 {
+        font-size: 20px !important;
+    }
+
+    .header-left div:first-child {
+        font-size: 30px !important;
+    }
+
+    .cart-badge {
+        padding: 6px 12px;
+        font-size: 14px;
+    }
+
+    .tab {
+        font-size: 13px;
+        padding: 8px 12px;
+    }
+
+    .sticky-cart .card {
+        margin-bottom: 20px;
+    }
+
+    input, textarea, select {
+        font-size: 16px !important;
+    }
+
+    .filter-category-btn {
+        font-size: 13px;
+        padding: 6px 12px;
+    }
+
+    .grid-2, .grid-3, .grid-4 {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    }
+
+    /* Interface client : 1 produit par ligne sur mobile */
+    .layout-2col .grid-2 {
+        grid-template-columns: 1fr !important;
+    }
+    
+    /* Agrandir le texte dans les cartes produits */
+    .product-card {
+        padding: 16px;
+    }
+    
+    .product-name {
+        font-size: 18px !important;
+        margin-bottom: 8px;
+    }
+    
+    .product-icon {
+        font-size: 48px !important;
+        margin-bottom: 12px;
+    }
+    
+    .quantity-display, .quantity-input {
+        font-size: 20px !important;
+        min-width: 100px;
+    }
+    
+    .quantity-btn {
+        width: 44px;
+        height: 44px;
+        font-size: 22px;
+    }
+}
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .filter-category-btn {
+            padding: 8px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #374151;
+            transition: all 0.3s;
+        }
+
+        .filter-category-btn:hover {
+            border-color: #16a34a;
+            background: #f0fdf4;
+        }
+
+        .filter-category-btn.active {
+            border-color: #16a34a;
+            background: #16a34a;
+            color: white;
+        }
+
+        .unit-hint {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+
+    <script>
+        // ============================================
+        // CONFIGURATION DE L'API
+        // ============================================
+        const API_BASE = '/.netlify/functions';
+
+        // API Users
+        const usersAPI = {
+            async getAll() {
+                const response = await fetch(`${API_BASE}/users`);
+                if (!response.ok) throw new Error('Erreur chargement users');
+                return response.json();
+            },
+            async login(username, password) {
+                const response = await fetch(`${API_BASE}/users/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                if (!response.ok) throw new Error('Identifiants incorrects');
+                return response.json();
+            },
+            async create(userData) {
+                const response = await fetch(`${API_BASE}/users`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                });
+                if (!response.ok) throw new Error('Erreur création utilisateur');
+                return response.json();
+            },
+            async update(id, userData) {
+                const response = await fetch(`${API_BASE}/users/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                });
+                if (!response.ok) throw new Error('Erreur mise à jour utilisateur');
+                return response.json();
+            },
+            async delete(id) {
+                const response = await fetch(`${API_BASE}/users/${id}`, {
+                    method: 'DELETE'
+                });
+                if (!response.ok) throw new Error('Erreur suppression utilisateur');
+                return response.json();
+            }
+        };
+
+        // API Products
+        const productsAPI = {
+            async getAll() {
+                const response = await fetch(`${API_BASE}/products`);
+                if (!response.ok) throw new Error('Erreur chargement produits');
+                return response.json();
+            },
+            async create(productData) {
+                const response = await fetch(`${API_BASE}/products`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(productData)
+                });
+                if (!response.ok) throw new Error('Erreur création produit');
+                return response.json();
+            },
+            async update(id, productData) {
+                const response = await fetch(`${API_BASE}/products/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(productData)
+                });
+                if (!response.ok) throw new Error('Erreur mise à jour produit');
+                return response.json();
+            },
+            async delete(id) {
+                const response = await fetch(`${API_BASE}/products/${id}`, {
+                    method: 'DELETE'
+                });
+                if (!response.ok) throw new Error('Erreur suppression produit');
+                return response.json();
+            }
+        };
+
+        // API Assignments
+        const assignmentsAPI = {
+            async getAll() {
+                const response = await fetch(`${API_BASE}/assignments`);
+                if (!response.ok) throw new Error('Erreur chargement attributions');
+                return response.json();
+            },
+            async create(clientId, productId) {
+                const response = await fetch(`${API_BASE}/assignments`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ client_id: clientId, product_id: productId })
+                });
+                if (!response.ok) throw new Error('Erreur création attribution');
+                return response.json();
+            },
+            async delete(clientId, productId) {
+                const response = await fetch(`${API_BASE}/assignments/${clientId}/${productId}`, {
+                    method: 'DELETE'
+                });
+                if (!response.ok) throw new Error('Erreur suppression attribution');
+                return response.json();
+            }
+        };
+
+        // API Orders
+        const ordersAPI = {
+            async getAll() {
+                const response = await fetch(`${API_BASE}/orders`);
+                if (!response.ok) throw new Error('Erreur chargement commandes');
+                return response.json();
+            },
+            async create(orderData) {
+                const response = await fetch(`${API_BASE}/orders`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(orderData)
+                });
+                if (!response.ok) throw new Error('Erreur création commande');
+                return response.json();
+            },
+            async delete(id) {
+                const response = await fetch(`${API_BASE}/orders/${id}`, {
+                    method: 'DELETE'
+                });
+                if (!response.ok) throw new Error('Erreur suppression commande');
+                return response.json();
+            }
+        };
+
+        // ============================================
+        // DONNÉES DE L'APPLICATION
+        // ============================================
+        let appData = {
+            users: {},
+            products: [],
+            assignments: {},
+            orders: []
+        };
+
+        let isLoading = true;
+
+        // Charger les données au démarrage
+        async function loadData() {
+            try {
+                isLoading = true;
+                render();
+
+                const [users, products, assignments, orders] = await Promise.all([
+                    usersAPI.getAll(),
+                    productsAPI.getAll(),
+                    assignmentsAPI.getAll(),
+                    ordersAPI.getAll()
+                ]);
+                
+                // Convertir le tableau users en objet
+                appData.users = {};
+                users.forEach(user => {
+                    appData.users[user.id] = user;
+                });
+                
+                appData.products = products;
+                appData.assignments = assignments;
+                appData.orders = orders;
+                
+                isLoading = false;
+                render();
+            } catch (error) {
+                console.error('Erreur de chargement:', error);
+                isLoading = false;
+                alert('Erreur lors du chargement des données: ' + error.message);
+                render();
+            }
+        }
+
+        let currentUser = null;
+        let currentTab = 'products';
+        let cart = [];
+        let selectedClient = null;
+        let selectedProduct = null;
+        let filters = {
+            productSearch: '',
+            productCategory: 'all',
+            clientProductSearch: '',
+            clientProductCategory: 'all',
+            clientSearch: '',
+            orderSearch: '',
+            assignmentClientSearch: '',
+            assignmentProductFilter: 'all',
+            assignmentHasProduct: 'all',
+            assignmentCategoryFilter: 'all'
+        };
+        let activeFilterInput = null;
+        let editingQuantity = null;
+
+        function normalizeCategory(category) {
+            if (!category) return 'Autre';
+            return category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
+        }
+
+        function togglePasswordVisibility(inputId) {
+            const input = document.getElementById(inputId);
+            const button = input.nextElementSibling;
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                button.textContent = '🙈';
+            } else {
+                input.type = 'password';
+                button.textContent = '👁️';
+            }
+        }
+
+        function startEditingQuantity(productId) {
+            editingQuantity = productId;
+            render();
+            setTimeout(() => {
+                const input = document.getElementById('qty-input-' + productId);
+                if (input) {
+                    input.focus();
+                    input.select();
+                }
+            }, 0);
+        }
+
+        function saveQuantity(productId, value) {
+            const qty = parseInt(value) || 0;
+            if (qty <= 0) {
+                removeFromCart(productId);
+            } else {
+                const item = cart.find(i => i.id === productId);
+                if (item) {
+                    item.quantity = qty;
+                } else {
+                    const product = appData.products.find(p => p.id === productId);
+                    if (product) {
+                        cart.push({ ...product, quantity: qty });
+                    }
+                }
+            }
+            editingQuantity = null;
+            render();
+        }
+
+        function cancelEditingQuantity() {
+            editingQuantity = null;
+            render();
+        }
+
+        function render() {
+            const app = document.getElementById('app');
+            
+            if (isLoading) {
+                app.innerHTML = '<div class="loading">⏳ Chargement des données...</div>';
+                return;
+            }
+
+            if (!currentUser) {
+                app.innerHTML = renderLogin();
+            } else if (currentUser.role === 'admin') {
+                app.innerHTML = renderAdmin();
+            } else {
+                app.innerHTML = renderClient();
+            }
+            
+            if (activeFilterInput) {
+                const input = document.getElementById(activeFilterInput);
+                if (input) {
+                    setTimeout(() => {
+                        input.focus();
+                        input.setSelectionRange(input.value.length, input.value.length);
+                    }, 0);
+                }
+            }
+        }
+
+        function renderLogin() {
+            return `
+                <div class="login-page">
+                    <div class="login-card">
+                        <div class="logo">
+                            <div class="logo-icon">🥬🍊</div>
+                            <h1>Les Vergers de Paris</h1>
+                            <p class="subtitle">Gestion de commandes en ligne</p>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Identifiant</label>
+                            <input type="text" id="username" placeholder="Votre identifiant">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Mot de passe</label>
+                            <div class="password-wrapper">
+                                <input type="password" id="password" placeholder="Votre mot de passe" onkeypress="if(event.key === 'Enter') login()">
+                                <button type="button" class="password-toggle" onclick="togglePasswordVisibility('password')">👁️</button>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+                            <input type="checkbox" id="stayConnected" style="width: auto; cursor: pointer;">
+                            <label for="stayConnected" style="margin: 0; cursor: pointer; font-size: 14px;">Rester connecté</label>
+                        </div>
+                        
+                        <button class="btn btn-primary" onclick="login()">Se connecter</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderAdmin() {
+            let content = '';
+            
+            if (currentTab === 'products') {
+                content = renderProductsTab();
+            } else if (currentTab === 'clients') {
+                content = renderClientsTab();
+            } else if (currentTab === 'assignments') {
+                content = renderAssignmentsTab();
+            } else if (currentTab === 'orders') {
+                content = renderOrdersTab();
+            }
+
+            return `
+                <div class="header">
+                    <div class="header-content">
+                        <div class="header-left">
+                            <div style="font-size: 32px;">🥬</div>
+                            <div>
+                                <h1 style="font-size: 24px; margin: 0;">Les Vergers de Paris</h1>
+                                <p style="font-size: 14px; color: #6b7280; margin: 0;">Panneau d'administration</p>
+                            </div>
+                        </div>
+                        <div class="header-right">
+                            <div style="color: #374151; font-weight: 500;">👤 ${currentUser.username}</div>
+                            <button class="btn btn-danger" onclick="logout()" style="width: auto; padding: 10px 20px;">Déconnexion</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="container">
+                    <div class="tabs">
+                        <button class="tab ${currentTab === 'products' ? 'active' : ''}" onclick="switchTab('products')">📦 Catalogue Produits</button>
+                        <button class="tab ${currentTab === 'clients' ? 'active' : ''}" onclick="switchTab('clients')">👥 Gestion Clients</button>
+                        <button class="tab ${currentTab === 'assignments' ? 'active' : ''}" onclick="switchTab('assignments')">⚙️ Attribution Produits</button>
+                        <button class="tab ${currentTab === 'orders' ? 'active' : ''}" onclick="switchTab('orders')">🛒 Commandes (${appData.orders.length})</button>
+                    </div>
+                    ${content}
+                </div>
+            `;
+        }
+
+        function renderProductsTab() {
+            if (selectedProduct) {
+                const product = appData.products.find(p => p.id === selectedProduct);
+                if (!product) {
+                    selectedProduct = null;
+                    render();
+                    return '';
+                }
+                
+                return `
+                    <div class="card">
+                        <div class="flex-between" style="margin-bottom: 20px;">
+                            <h2 class="card-title" style="margin: 0;">Modifier le produit</h2>
+                            <button class="btn btn-secondary" onclick="selectedProduct = null; activeFilterInput = null; render()" style="width: auto; padding: 10px 20px;">← Retour</button>
+                        </div>
+                        
+                        <div style="background: #f9fafb; padding: 20px; border-radius: 10px;">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Nom du produit</label>
+                                    <input type="text" id="editProductName" value="${product.name}" placeholder="Nom du produit">
+                                </div>
+                                <div class="form-group">
+                                    <label>Catégorie</label>
+                                    <input type="text" id="editProductCategory" value="${product.category}" placeholder="Catégorie">
+                                </div>
+                                <div class="form-group">
+                                    <label>Unité / Conditionnement</label>
+                                    <input type="text" id="editProductUnit" value="${product.unit}" placeholder="Ex: kg, pièce, botte, caisse...">
+                                    <div class="unit-hint">Suggestions: kg, pièce, botte, caisse, litre, barquette</div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Emoji</label>
+                                    <input type="text" id="editProductImage" value="${product.image}" placeholder="Emoji">
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                                <button class="btn btn-primary" onclick="updateProduct('${product.id}')" style="flex: 1;">Enregistrer les modifications</button>
+                                <button class="btn btn-danger" onclick="deleteProduct('${product.id}')" style="flex: 1;">Supprimer le produit</button>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 25px; padding: 20px; background: #f0fdf4; border-radius: 10px; border: 2px solid #16a34a;">
+                            <h3 style="font-size: 16px; font-weight: 700; color: #15803d; margin-bottom: 10px;">📊 Informations</h3>
+                            <p style="font-size: 14px; color: #374151; margin-bottom: 8px;">
+                                <strong>Attribué à ${getClientsWithProduct(product.id).length} client(s):</strong>
+                            </p>
+                            ${getClientsWithProduct(product.id).length > 0 ? 
+                                `<ul style="font-size: 14px; color: #6b7280; margin-left: 20px;">
+                                    ${getClientsWithProduct(product.id).map(client => 
+                                        `<li>${client.name || client.username}</li>`
+                                    ).join('')}
+                                </ul>` :
+                                '<p style="font-size: 14px; color: #6b7280;">Ce produit n\'est attribué à aucun client</p>'
+                            }
+                        </div>
+                    </div>
+                `;
+            }
+            
+            const filteredProducts = filterProducts(appData.products, filters.productSearch, filters.productCategory);
+            
+            const productsByCategory = {};
+            filteredProducts.forEach(p => {
+                if (!productsByCategory[p.category]) {
+                    productsByCategory[p.category] = [];
+                }
+                productsByCategory[p.category].push(p);
+            });
+            
+            return `
+                <div class="card">
+                    <h2 class="card-title">Ajouter un produit</h2>
+                    <div class="form-row">
+                        <input type="text" id="newProductName" placeholder="Nom du produit">
+                        <input type="text" id="newProductCategory" placeholder="Catégorie">
+                        <div>
+                            <input type="text" id="newProductUnit" placeholder="Unité (kg, pièce, botte...)">
+                            <div class="unit-hint">Ex: kg, pièce, botte, caisse, litre, barquette</div>
+                        </div>
+                        <input type="text" id="newProductImage" placeholder="Emoji">
+                    </div>
+                    <button class="btn btn-primary" onclick="addProduct()">Ajouter au catalogue</button>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title">Catalogue (${appData.products.length} produits)</h2>
+                    
+                    ${renderFilterBar('productSearch', 'productCategory')}
+                    
+                    ${filteredProducts.length === 0 ? 
+                        '<div class="empty-state">Aucun produit ne correspond à votre recherche</div>' :
+                        Object.keys(productsByCategory).map(category => `
+                            <div style="margin-bottom: 30px;">
+                                <h3 style="font-size: 20px; font-weight: 700; color: #16a34a; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #16a34a;">
+                                    ${category}
+                                </h3>
+                                <div class="grid grid-3">
+                                    ${productsByCategory[category].map(p => `
+                                        <div class="product-card" style="cursor: pointer;" onclick="selectedProduct = '${p.id}'; activeFilterInput = null; render();">
+                                            <div class="flex-between" style="margin-bottom: 10px;">
+                                                <div class="product-icon">${p.image}</div>
+                                                <button class="icon-btn" onclick="event.stopPropagation(); deleteProduct('${p.id}')">🗑️</button>
+                                            </div>
+                                            <div class="product-name">${p.name}</div>
+                                            <div class="product-category">${p.category}</div>
+                                            <div style="color: #6b7280; font-size: 14px; margin-top: 5px;">${p.unit}</div>
+                                            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #e5e7eb; color: #16a34a; font-size: 13px; font-weight: 600;">
+                                                ➜ Cliquer pour modifier
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `).join('')
+                    }
+                    
+                    ${filteredProducts.length < appData.products.length ? 
+                        `<div style="text-align: center; margin-top: 15px; color: #6b7280; font-size: 14px;">
+                            Affichage de ${filteredProducts.length} sur ${appData.products.length} produits
+                        </div>` : ''
+                    }
+                </div>
+            `;
+        }
+
+        function renderClientsTab() {
+            const clients = Object.values(appData.users).filter(u => u.role === 'client');
+            
+            if (selectedClient) {
+                const client = appData.users[selectedClient];
+                if (!client) {
+                    selectedClient = null;
+                    render();
+                    return '';
+                }
+                
+                return `
+                    <div class="card">
+                        <div class="flex-between" style="margin-bottom: 20px;">
+                            <h2 class="card-title" style="margin: 0;">Détails du client</h2>
+                            <button class="btn btn-secondary" onclick="selectedClient = null; activeFilterInput = null; render()" style="width: auto; padding: 10px 20px;">← Retour</button>
+                        </div>
+                        
+                        <div style="background: #f9fafb; padding: 20px; border-radius: 10px; margin-bottom: 25px;">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Nom</label>
+                                    <input type="text" id="editClientName" value="${client.name || ''}" placeholder="Nom du client">
+                                </div>
+                                <div class="form-group">
+                                    <label>Identifiant</label>
+                                    <input type="text" id="editClientUsername" value="${client.username}" placeholder="Identifiant">
+                                </div>
+                                <div class="form-group">
+                                    <label>Mot de passe</label>
+                                    <div class="password-wrapper">
+                                        <input type="password" id="editClientPassword" value="${client.password}" placeholder="Mot de passe">
+                                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('editClientPassword')">👁️</button>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Email</label>
+                                    <input type="email" id="editClientEmail" value="${client.email}" placeholder="Email">
+                                </div>
+                                <div class="form-group">
+                                    <label>Téléphone</label>
+                                    <input type="tel" id="editClientPhone" value="${client.phone || ''}" placeholder="Numéro de téléphone">
+                                </div>
+                                <div class="form-group" style="grid-column: 1 / -1;">
+                                    <label>Adresse de livraison</label>
+                                    <input type="text" id="editClientAddress" value="${client.address || ''}" placeholder="Adresse complète">
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                                <button class="btn btn-primary" onclick="updateClient('${client.id}')" style="flex: 1;">Enregistrer les modifications</button>
+                                <button class="btn btn-danger" onclick="deleteClient('${client.id}')" style="flex: 1;">Supprimer le client</button>
+                            </div>
+                        </div>
+
+                        <h3 style="font-size: 18px; font-weight: 700; color: #1f2937; margin-bottom: 15px;">Attribution des produits</h3>
+                        
+                        ${renderFilterBar('clientProductSearch', 'clientProductCategory')}
+                        
+                        <div class="assignment-grid">
+                            ${filterProducts(appData.products, filters.clientProductSearch, filters.clientProductCategory).map(p => {
+                                const isAssigned = (appData.assignments[client.id] || []).includes(p.id);
+                                return `
+                                    <button class="assignment-btn ${isAssigned ? 'active' : ''}" onclick="toggleAssignment('${client.id}', '${p.id}')">
+                                        <div style="font-size: 18px; margin-bottom: 4px;">${p.image}</div>
+                                        <div style="font-size: 11px; font-weight: 600;">${p.name}</div>
+                                    </button>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            const filteredClients = filterClients(clients, filters.clientSearch);
+            
+            return `
+                <div class="card">
+                    <h2 class="card-title">Ajouter un client</h2>
+                    <div class="form-row">
+                        <input type="text" id="newClientName" placeholder="Nom du client">
+                        <input type="text" id="newClientUsername" placeholder="Identifiant">
+                        <div class="password-wrapper">
+                            <input type="password" id="newClientPassword" placeholder="Mot de passe">
+                            <button type="button" class="password-toggle" onclick="togglePasswordVisibility('newClientPassword')">👁️</button>
+                        </div>
+                        <input type="email" id="newClientEmail" placeholder="Email">
+                        <input type="tel" id="newClientPhone" placeholder="Téléphone">
+                        <input type="text" id="newClientAddress" placeholder="Adresse de livraison" style="grid-column: 1 / -1;">
+                    </div>
+                    <button class="btn btn-secondary" onclick="addClient()">Créer le compte client</button>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title">Clients (${clients.length})</h2>
+                    
+                    ${renderSearchBar('clientSearch', 'Rechercher par nom, email, téléphone, adresse...')}
+                    
+                    ${filteredClients.length === 0 ? 
+                        '<div class="empty-state">Aucun client ne correspond à votre recherche</div>' :
+                        `<div class="grid grid-2">
+                            ${filteredClients.map(c => `
+                                <div class="client-card" style="cursor: pointer;" onclick="selectedClient = '${c.id}'; activeFilterInput = null; render();">
+                                    <div class="flex-between">
+                                        <div>
+                                            <div class="product-name">${c.name || c.username}</div>
+                                            <div style="font-size: 14px; color: #6b7280; margin-top: 5px;">Identifiant: ${c.username}</div>
+                                            <div style="font-size: 14px; color: #6b7280;">Email: ${c.email}</div>
+                                            ${c.phone ? `<div style="font-size: 14px; color: #6b7280;">Tél: ${c.phone}</div>` : ''}
+                                            ${c.address ? `<div style="font-size: 14px; color: #6b7280; margin-top: 3px;">📍 ${c.address}</div>` : ''}
+                                            <div style="font-size: 14px; color: #6b7280; margin-top: 8px; font-weight: 600;">Produits attribués: ${(appData.assignments[c.id] || []).length}</div>
+                                        </div>
+                                        <span class="badge badge-orange">Client</span>
+                                    </div>
+                                    <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #e5e7eb; color: #16a34a; font-size: 13px; font-weight: 600;">
+                                        ➜ Cliquer pour gérer
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>`
+                    }
+                    
+                    ${filteredClients.length < clients.length ? 
+                        `<div style="text-align: center; margin-top: 15px; color: #6b7280; font-size: 14px;">
+                            Affichage de ${filteredClients.length} sur ${clients.length} clients
+                        </div>` : ''
+                    }
+                </div>
+            `;
+        }
+
+        // MODIFICATION : Toute la fonction renderAssignmentsTab a été révisée pour corriger la logique de filtre
+        function renderAssignmentsTab() {
+            const clients = Object.values(appData.users).filter(u => u.role === 'client');
+            let filteredClients = [...clients];
+
+            // 1. Filtrer par nom de client
+            if (filters.assignmentClientSearch) {
+                const term = filters.assignmentClientSearch.toLowerCase();
+                filteredClients = filteredClients.filter(c => 
+                    (c.name && c.name.toLowerCase().includes(term)) ||
+                    c.username.toLowerCase().includes(term)
+                );
+            }
+
+            // 2. Déterminer les produits cibles en fonction des filtres de produit ou de catégorie
+            let targetProductIds = [];
+            if (filters.assignmentProductFilter !== 'all') {
+                targetProductIds = [filters.assignmentProductFilter];
+            } else if (filters.assignmentCategoryFilter !== 'all') {
+                targetProductIds = appData.products
+                    .filter(p => p.category === filters.assignmentCategoryFilter)
+                    .map(p => p.id);
+            }
+
+            // 3. Filtrer les clients en fonction de la possession des produits cibles
+            if (targetProductIds.length > 0 && filters.assignmentHasProduct !== 'all') {
+                if (filters.assignmentHasProduct === 'has') {
+                    filteredClients = filteredClients.filter(c => {
+                        const clientProducts = appData.assignments[c.id] || [];
+                        return targetProductIds.some(pid => clientProducts.includes(pid));
+                    });
+                } else if (filters.assignmentHasProduct === 'hasNot') {
+                    filteredClients = filteredClients.filter(c => {
+                        const clientProducts = appData.assignments[c.id] || [];
+                        return !targetProductIds.some(pid => clientProducts.includes(pid));
+                    });
+                }
+            }
+            
+            // 4. Déterminer la liste des produits à afficher pour chaque client
+            let productsToShow = appData.products;
+            if (filters.assignmentCategoryFilter !== 'all') {
+                productsToShow = appData.products.filter(p => p.category === filters.assignmentCategoryFilter);
+            }
+            
+            // 5. Préparer les données pour les menus déroulants et les labels
+            const productsForDropdown = filters.assignmentCategoryFilter !== 'all' 
+                ? appData.products.filter(p => p.category === filters.assignmentCategoryFilter)
+                : appData.products;
+            
+            const categories = getCategories();
+            
+            let hasProductLabel = `✅ Ont ce produit`;
+            let hasNotProductLabel = `❌ N'ont pas ce produit`;
+            if (filters.assignmentProductFilter === 'all' && filters.assignmentCategoryFilter !== 'all') {
+                hasProductLabel = `✅ Ont un produit '${filters.assignmentCategoryFilter}'`;
+                hasNotProductLabel = `❌ N'ont aucun produit '${filters.assignmentCategoryFilter}'`;
+            }
+            
+            return `
+                <div class="card">
+                    <h2 class="card-title">Attribution des produits aux clients</h2>
+                    
+                    <div style="background: #f9fafb; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                        <div style="display: grid; grid-template-columns: 1fr; gap: 15px;">
+                            <div>
+                                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">
+                                    👤 Rechercher un client
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="filter-assignmentClientSearch"
+                                    value="${filters.assignmentClientSearch}"
+                                    oninput="updateFilter('assignmentClientSearch', this.value)"
+                                    placeholder="Tapez le nom d'un client..."
+                                    style="width: 100%;"
+                                >
+                            </div>
+                            
+                            <div>
+                                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">
+                                    📂 Filtrer par catégorie de produits
+                                </label>
+                                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                    <button 
+                                        onclick="activeFilterInput = null; updateFilter('assignmentCategoryFilter', 'all')"
+                                        class="filter-category-btn ${filters.assignmentCategoryFilter === 'all' ? 'active' : ''}"
+                                    >
+                                        Toutes
+                                    </button>
+                                    ${categories.map(cat => `
+                                        <button 
+                                            onclick="activeFilterInput = null; updateFilter('assignmentCategoryFilter', '${cat}')"
+                                            class="filter-category-btn ${filters.assignmentCategoryFilter === cat ? 'active' : ''}"
+                                        >
+                                            ${cat}
+                                        </button>
+                                    `).join('')}
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">
+                                    📦 Filtrer par produit ${filters.assignmentCategoryFilter !== 'all' ? `(${filters.assignmentCategoryFilter} uniquement)` : ''}
+                                </label>
+                                <select 
+                                    id="filter-assignmentProductFilter"
+                                    onchange="updateFilter('assignmentProductFilter', this.value)"
+                                    style="width: 100%;"
+                                >
+                                    <option value="all" ${filters.assignmentProductFilter === 'all' ? 'selected' : ''}>Aucun filtre produit</option>
+                                    ${productsForDropdown.map(p => `
+                                        <option value="${p.id}" ${filters.assignmentProductFilter === p.id ? 'selected' : ''}>
+                                            ${p.image} ${p.name}
+                                        </option>
+                                    `).join('')}
+                                </select>
+                            </div>
+                            
+                            ${(filters.assignmentProductFilter !== 'all' || filters.assignmentCategoryFilter !== 'all') ? `
+                                <div>
+                                    <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">
+                                        🔍 Afficher les clients qui...
+                                    </label>
+                                    <div style="display: flex; gap: 10px;">
+                                        <button 
+                                            onclick="updateFilter('assignmentHasProduct', 'all')"
+                                            class="filter-category-btn ${filters.assignmentHasProduct === 'all' ? 'active' : ''}"
+                                            style="flex: 1;"
+                                        >
+                                            Tous
+                                        </button>
+                                        <button 
+                                            onclick="updateFilter('assignmentHasProduct', 'has')"
+                                            class="filter-category-btn ${filters.assignmentHasProduct === 'has' ? 'active' : ''}"
+                                            style="flex: 1;"
+                                        >
+                                            ${hasProductLabel}
+                                        </button>
+                                        <button 
+                                            onclick="updateFilter('assignmentHasProduct', 'hasNot')"
+                                            class="filter-category-btn ${filters.assignmentHasProduct === 'hasNot' ? 'active' : ''}"
+                                            style="flex: 1;"
+                                        >
+                                            ${hasNotProductLabel}
+                                        </button>
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                        
+                        ${filters.assignmentClientSearch || filters.assignmentProductFilter !== 'all' || filters.assignmentCategoryFilter !== 'all' ? `
+                            <div style="margin-top: 15px; padding: 12px; background: #fff7ed; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                                <div style="font-size: 14px; color: #ea580c; font-weight: 600;">
+                                    📊 ${filteredClients.length} client${filteredClients.length > 1 ? 's' : ''} trouvé${filteredClients.length > 1 ? 's' : ''}
+                                    ${filters.assignmentCategoryFilter !== 'all' ? ` • Produits ${filters.assignmentCategoryFilter} affichés` : ''}
+                                </div>
+                                <button 
+                                    onclick="filters.assignmentClientSearch = ''; filters.assignmentProductFilter = 'all'; filters.assignmentHasProduct = 'all'; filters.assignmentCategoryFilter = 'all'; render();"
+                                    style="padding: 6px 12px; background: white; border: 2px solid #ea580c; border-radius: 6px; color: #ea580c; font-weight: 600; cursor: pointer; font-size: 13px;"
+                                >
+                                    Réinitialiser les filtres
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
+                    
+                    ${filteredClients.length === 0 ? 
+                        '<div class="empty-state">Aucun client ne correspond à vos critères de recherche</div>' :
+                        `<p style="color: #6b7280; margin-bottom: 20px;">Cliquez sur un produit pour l'attribuer ou le retirer à un client</p>
+                        ${filteredClients.map(c => `
+                            <div style="border: 2px solid #e5e7eb; border-radius: 12px; padding: 25px; margin-bottom: 20px;">
+                                <div class="flex-between" style="margin-bottom: 15px;">
+                                    <h3 style="font-size: 18px; font-weight: 700; color: #1f2937;">
+                                        ${c.name || c.username}
+                                        <span style="font-size: 14px; color: #6b7280; font-weight: 400; margin-left: 10px;">
+                                            (${(appData.assignments[c.id] || []).length} produit${(appData.assignments[c.id] || []).length > 1 ? 's' : ''})
+                                        </span>
+                                    </h3>
+                                    <button class="btn btn-secondary" onclick="selectedClient = '${c.id}'; activeFilterInput = null; switchTab('clients');" style="width: auto; padding: 8px 16px; font-size: 14px;">
+                                        Voir détails
+                                    </button>
+                                </div>
+                                <div class="assignment-grid">
+                                    ${productsToShow.map(p => {
+                                        const isAssigned = (appData.assignments[c.id] || []).includes(p.id);
+                                        return `
+                                            <button class="assignment-btn ${isAssigned ? 'active' : ''}" onclick="toggleAssignment('${c.id}', '${p.id}')">
+                                                <div style="font-size: 18px; margin-bottom: 4px;">${p.image}</div>
+                                                <div style="font-size: 11px; font-weight: 600;">${p.name}</div>
+                                            </button>
+                                        `;
+                                    }).join('')}
+                                </div>
+                            </div>
+                        `).join('')}`
+                    }
+                </div>
+            `;
+        }
+
+        function renderOrdersTab() {
+            if (appData.orders.length === 0) {
+                return `
+                    <div class="card">
+                        <h2 class="card-title">Commandes reçues</h2>
+                        <div class="empty-state">Aucune commande pour le moment</div>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="card">
+                    <h2 class="card-title">Commandes reçues (${appData.orders.length})</h2>
+                    ${appData.orders.map(o => `
+                        <div style="border: 2px solid #e5e7eb; border-radius: 12px; padding: 25px; margin-bottom: 20px;">
+                            <div class="flex-between" style="margin-bottom: 20px;">
+                                <div>
+                                    <h3 style="font-size: 18px; font-weight: 700; color: #1f2937;">${o.client_name}</h3>
+                                    <p style="font-size: 14px; color: #6b7280;">Commandé le: ${o.date}</p>
+                                    <p style="font-size: 14px; color: #16a34a; font-weight: 600;">📅 Livraison souhaitée: ${new Date(o.delivery_date).toLocaleDateString('fr-FR')}</p>
+                                    <p style="font-size: 14px; color: #6b7280;">${o.client_email}</p>
+                                    ${o.client_phone ? `<p style="font-size: 14px; color: #6b7280;">Tél: ${o.client_phone}</p>` : ''}
+                                    ${o.client_address ? `<p style="font-size: 14px; color: #6b7280;">📍 ${o.client_address}</p>` : ''}
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 11px; color: #6b7280; margin-bottom: 10px;">${o.id}</div>
+                                    <button class="btn btn-primary" onclick="downloadOrderPDF('${o.id}')" style="width: auto; padding: 10px 20px; font-size: 14px; margin-bottom: 10px;">
+                                        📄 Télécharger le bon
+                                    </button>
+                                    <button class="btn btn-danger" onclick="deleteOrder('${o.id}')" style="width: auto; padding: 10px 20px; font-size: 14px;">
+                                        🗑️ Supprimer
+                                    </button>
+                                </div>
+                            </div>
+                            <div style="background: #f9fafb; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                <h4 style="font-size: 14px; font-weight: 700; color: #374151; margin-bottom: 10px;">Produits commandés:</h4>
+                                ${o.items.map(item => `
+                                    <div class="flex-between" style="font-size: 14px; margin-bottom: 8px; padding: 5px 0;">
+                                        <span>${item.product_image} ${item.product_name}</span>
+                                        <span style="font-weight: 600;">${item.quantity} ${item.unit}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            ${o.comment ? `
+                                <div style="margin-top: 15px; padding: 15px; background: #fff7ed; border-radius: 8px;">
+                                    <p style="font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 5px;">💬 Commentaire:</p>
+                                    <p style="font-size: 14px; color: #6b7280;">${o.comment}</p>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function renderClient() {
+            const assignedProducts = appData.products.filter(p => 
+                (appData.assignments[currentUser.id] || []).includes(p.id)
+            );
+
+            const filteredProducts = filterProducts(assignedProducts, filters.clientProductSearch, filters.clientProductCategory);
+
+            const productsByCategory = {};
+            filteredProducts.forEach(p => {
+                if (!productsByCategory[p.category]) {
+                    productsByCategory[p.category] = [];
+                }
+                productsByCategory[p.category].push(p);
+            });
+
+            return `
+                <div class="header">
+                    <div class="header-content">
+                        <div class="header-left">
+                            <div style="font-size: 32px;">🥬🍊</div>
+                            <div>
+                                <h1 style="font-size: 24px; margin: 0;">Les Vergers de Paris</h1>
+                                <p style="font-size: 14px; color: #6b7280; margin: 0;">${currentUser.name || currentUser.username}</p>
+                            </div>
+                        </div>
+                        <div class="header-right">
+                            <div class="cart-badge">🛒 ${cart.length}</div>
+                            <button class="btn btn-danger" onclick="logout()" style="width: auto; padding: 10px 20px;">Déconnexion</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="container">
+                    <div class="layout-2col">
+                        <div>
+                            <div class="card">
+                                <h2 class="card-title">Produits disponibles (${assignedProducts.length})</h2>
+                                
+                                ${assignedProducts.length === 0 ? 
+                                    '<div class="empty-state">Aucun produit ne vous est attribué pour le moment.</div>' :
+                                    `
+                                    ${renderFilterBar('clientProductSearch', 'clientProductCategory')}
+                                    
+                                    ${filteredProducts.length === 0 ? 
+                                        '<div class="empty-state">Aucun produit ne correspond à votre recherche</div>' :
+                                        Object.keys(productsByCategory).map(category => `
+                                            <div style="margin-bottom: 30px;">
+                                                <h3 style="font-size: 20px; font-weight: 700; color: #16a34a; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #16a34a;">
+                                                    ${category}
+                                                </h3>
+                                                <div class="grid grid-2">
+                                                    ${productsByCategory[category].map(p => {
+                                                        const qtyInCart = getProductQuantityInCart(p.id);
+                                                        const isEditing = editingQuantity === p.id;
+                                                        return `
+                                                            <div class="product-card">
+                                                                <div class="product-icon">${p.image}</div>
+                                                                <div class="product-name">${p.name}</div>
+                                                                <div style="margin-top: 15px;">
+                                                                    <div class="quantity-controls" style="justify-content: center; margin-bottom: 10px;">
+                                                                        <button class="quantity-btn" onclick="updateQuantity('${p.id}', -1)" ${qtyInCart === 0 ? 'style="opacity: 0.3;"' : ''}>−</button>
+                                                                        ${isEditing ? 
+                                                                            `<input 
+                                                                                type="number" 
+                                                                                id="qty-input-${p.id}" 
+                                                                                class="quantity-input" 
+                                                                                value="${qtyInCart}"
+                                                                                onblur="saveQuantity('${p.id}', this.value)"
+                                                                                onkeypress="if(event.key === 'Enter') saveQuantity('${p.id}', this.value)"
+                                                                                min="0"
+                                                                            >` :
+                                                                            `<span 
+                                                                                class="quantity-display" 
+                                                                                style="color: ${qtyInCart > 0 ? '#16a34a' : '#6b7280'};"
+                                                                                onclick="startEditingQuantity('${p.id}')"
+                                                                                title="Cliquer pour modifier"
+                                                                            >
+                                                                                ${qtyInCart} ${p.unit}
+                                                                            </span>`
+                                                                        }
+                                                                        <button class="quantity-btn" onclick="updateQuantity('${p.id}', 1)">+</button>
+                                                                    </div>
+                                                                    ${qtyInCart > 0 ? 
+                                                                        '<div style="text-align: center; font-size: 12px; color: #16a34a; font-weight: 600;">✓ Dans le panier</div>' :
+                                                                        '<div style="text-align: center; font-size: 12px; color: #6b7280;">Cliquer sur la quantité pour modifier</div>'
+                                                                    }
+                                                                </div>
+                                                            </div>
+                                                        `;
+                                                    }).join('')}
+                                                </div>
+                                            </div>
+                                        `).join('')
+                                    }
+                                    
+                                    ${filteredProducts.length < assignedProducts.length ? 
+                                        `<div style="text-align: center; margin-top: 15px; color: #6b7280; font-size: 14px;">
+                                            Affichage de ${filteredProducts.length} sur ${assignedProducts.length} produits
+                                        </div>` : ''
+                                    }
+                                    `
+                                }
+                            </div>
+                        </div>
+
+                        <div class="sticky-cart">
+                            <div class="card">
+                                <h2 class="card-title">🛒 Mon panier</h2>
+                                ${cart.length === 0 ? 
+                                    '<div class="empty-state" style="padding: 40px 20px;">Votre panier est vide</div>' :
+                                    `
+                                        <div style="max-height: 400px; overflow-y: auto; margin-bottom: 20px;">
+                                            ${cart.map(item => {
+                                                const isEditing = editingQuantity === item.id;
+                                                return `
+                                                    <div class="cart-item">
+                                                        <div class="flex-between" style="margin-bottom: 10px;">
+                                                            <div class="flex-center">
+                                                                <span style="font-size: 18px;">${item.image}</span>
+                                                                <div>
+                                                                    <div style="font-weight: 600; color: #1f2937; font-size: 14px;">${item.name}</div>
+                                                                    <div style="font-size: 12px; color: #6b7280;">${item.unit}</div>
+                                                                </div>
+                                                            </div>
+                                                            <button class="icon-btn" onclick="removeFromCart('${item.id}')">🗑️</button>
+                                                        </div>
+                                                        <div class="flex-between">
+                                                            <div class="quantity-controls">
+                                                                <button class="quantity-btn" onclick="updateQuantity('${item.id}', -1)">−</button>
+                                                                ${isEditing ? 
+                                                                    `<input 
+                                                                        type="number" 
+                                                                        id="qty-input-${item.id}" 
+                                                                        class="quantity-input" 
+                                                                        value="${item.quantity}"
+                                                                        onblur="saveQuantity('${item.id}', this.value)"
+                                                                        onkeypress="if(event.key === 'Enter') saveQuantity('${item.id}', this.value)"
+                                                                        min="0"
+                                                                    >` :
+                                                                    `<span 
+                                                                        class="quantity-display" 
+                                                                        style="font-size: 16px;"
+                                                                        onclick="startEditingQuantity('${item.id}')"
+                                                                        title="Cliquer pour modifier"
+                                                                    >
+                                                                        ${item.quantity} ${item.unit}
+                                                                    </span>`
+                                                                }
+                                                                <button class="quantity-btn" onclick="updateQuantity('${item.id}', 1)">+</button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                `;
+                                            }).join('')}
+                                        </div>
+
+                                        <div style="border-top: 2px solid #e5e7eb; padding-top: 20px;">
+                                            <div style="background: #f0fdf4; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                                <p style="font-size: 14px; color: #15803d; font-weight: 600; text-align: center;">
+                                                    ${cart.length} produit${cart.length > 1 ? 's' : ''} dans votre panier
+                                                </p>
+                                            </div>
+
+                                            <div style="margin-bottom: 15px;">
+                                                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">
+                                                    📅 Date de livraison souhaitée
+                                                </label>
+                                                <input type="date" id="orderDeliveryDate" style="width: 100%;">
+                                            </div>
+
+                                            <textarea id="orderComment" placeholder="Commentaire pour votre commande (optionnel)" rows="3" style="margin-bottom: 15px;"></textarea>
+
+                                            <button class="btn btn-primary" onclick="submitOrder()">Valider ma commande</button>
+                                        </div>
+                                    `
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ============================================
+        // FONCTIONS D'AUTHENTIFICATION
+        // ============================================
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const stayConnected = document.getElementById('stayConnected').checked;
+            
+            if (!username || !password) {
+                alert('Veuillez remplir tous les champs');
+                return;
+            }
+
+            try {
+                const user = await usersAPI.login(username, password);
+                currentUser = user;
+                
+                // Sauvegarder la session si "Rester connecté" est coché
+                if (stayConnected) {
+                    localStorage.setItem('vergers_user', JSON.stringify(user));
+                }
+                
+                await loadData();
+            } catch (error) {
+                alert('Identifiants incorrects');
+            }
+        }
+
+        function logout() {
+            // Supprimer la session sauvegardée
+            localStorage.removeItem('vergers_user');
+            
+            currentUser = null;
+            cart = [];
+            selectedClient = null;
+            selectedProduct = null;
+            activeFilterInput = null;
+            editingQuantity = null;
+            filters = {
+                productSearch: '',
+                productCategory: 'all',
+                clientProductSearch: '',
+                clientProductCategory: 'all',
+                clientSearch: '',
+                orderSearch: '',
+                assignmentClientSearch: '',
+                assignmentProductFilter: 'all',
+                assignmentHasProduct: 'all',
+                assignmentCategoryFilter: 'all'
+            };
+            render();
+        }
+
+        // Vérifier si l'utilisateur a une session sauvegardée au chargement
+        async function checkSavedSession() {
+            const savedUser = localStorage.getItem('vergers_user');
+            if (savedUser) {
+                try {
+                    currentUser = JSON.parse(savedUser);
+                    await loadData();
+                } catch (error) {
+                    console.error('Session expirée ou invalide');
+                    localStorage.removeItem('vergers_user');
+                    render();
+                }
+            }
+        }
+
+        // ============================================
+        // FONCTIONS DE NAVIGATION
+        // ============================================
+        function switchTab(tab) {
+            if (currentTab !== tab) {
+                activeFilterInput = null;
+                if (tab !== 'clients') {
+                    selectedClient = null;
+                }
+                if (tab !== 'products') {
+                    selectedProduct = null;
+                }
+                if (tab === 'products') {
+                    filters.productSearch = '';
+                    filters.productCategory = 'all';
+                } else if (tab === 'clients') {
+                    filters.clientProductSearch = '';
+                    filters.clientProductCategory = 'all';
+                    filters.clientSearch = '';
+                } else if (tab === 'assignments') {
+                    filters.clientProductSearch = '';
+                    filters.clientProductCategory = 'all';
+                    filters.assignmentClientSearch = '';
+                    filters.assignmentProductFilter = 'all';
+                    filters.assignmentHasProduct = 'all';
+                    filters.assignmentCategoryFilter = 'all';
+                } else if (tab === 'orders') {
+                    filters.orderSearch = '';
+                }
+            }
+            currentTab = tab;
+            render();
+        }
+
+        // ============================================
+        // FONCTIONS UTILITAIRES
+        // ============================================
+        function getCategories() {
+            const categories = [...new Set(appData.products.map(p => p.category))];
+            return categories.sort();
+        }
+
+        function filterProducts(products, searchTerm, category) {
+            return products.filter(p => {
+                const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
+                const matchesCategory = category === 'all' || p.category === category;
+                return matchesSearch && matchesCategory;
+            });
+        }
+
+        function updateFilter(filterName, value) {
+    filters[filterName] = value;
+    activeFilterInput = 'filter-' + filterName;
+    
+    if (filterName === 'assignmentCategoryFilter') {
+        const selectedProduct = appData.products.find(p => p.id === filters.assignmentProductFilter);
+        if (filters.assignmentProductFilter !== 'all' && selectedProduct && value !== 'all' && selectedProduct.category !== value) {
+            filters.assignmentProductFilter = 'all';
+            filters.assignmentHasProduct = 'all';
+        }
+    }
+    
+    // Pour les champs de recherche texte, ne pas re-render immédiatement
+    // Utiliser un debounce pour améliorer les performances
+    if (filterName.includes('Search')) {
+        clearTimeout(window.searchTimeout);
+        window.searchTimeout = setTimeout(() => {
+            render();
+        }, 300); // Attendre 300ms après la dernière frappe
+    } else {
+        // Pour les filtres par boutons/select, render immédiatement
+        render();
+    }
+}
+
+        function filterClients(clients, searchTerm) {
+            if (!searchTerm) return clients;
+            const term = searchTerm.toLowerCase();
+            return clients.filter(c => {
+                return (c.name && c.name.toLowerCase().includes(term)) ||
+                       c.username.toLowerCase().includes(term) ||
+                       c.email.toLowerCase().includes(term) ||
+                       (c.phone && c.phone.includes(term)) ||
+                       (c.address && c.address.toLowerCase().includes(term));
+            });
+        }
+
+        function renderSearchBar(searchFilterName, placeholder) {
+            return `
+                <div style="background: #f9fafb; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                    <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">
+                        🔍 Rechercher
+                    </label>
+                    <input 
+                        type="text" 
+                        id="filter-${searchFilterName}"
+                        value="${filters[searchFilterName]}"
+                        oninput="updateFilter('${searchFilterName}', this.value)"
+                        placeholder="${placeholder}"
+                        style="width: 100%;"
+                    >
+                </div>
+            `;
+        }
+
+        function renderFilterBar(searchFilterName, categoryFilterName) {
+            const categories = getCategories();
+            return `
+                <div style="background: #f9fafb; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 15px;">
+                        <div>
+                            <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">
+                                🔍 Rechercher un produit
+                            </label>
+                            <input 
+                                type="text" 
+                                id="filter-${searchFilterName}"
+                                value="${filters[searchFilterName]}"
+                                oninput="updateFilter('${searchFilterName}', this.value)"
+                                placeholder="Tapez le nom d'un produit..."
+                                style="width: 100%;"
+                            >
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">
+                                📂 Filtrer par catégorie
+                            </label>
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                <button 
+                                    onclick="activeFilterInput = null; updateFilter('${categoryFilterName}', 'all')"
+                                    class="filter-category-btn ${filters[categoryFilterName] === 'all' ? 'active' : ''}"
+                                >
+                                    Toutes
+                                </button>
+                                ${categories.map(cat => `
+                                    <button 
+                                        onclick="activeFilterInput = null; updateFilter('${categoryFilterName}', '${cat}')"
+                                        class="filter-category-btn ${filters[categoryFilterName] === cat ? 'active' : ''}"
+                                    >
+                                        ${cat}
+                                    </button>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ============================================
+        // GESTION DES PRODUITS
+        // ============================================
+        async function addProduct() {
+            const name = document.getElementById('newProductName').value;
+            const category = document.getElementById('newProductCategory').value;
+            const unit = document.getElementById('newProductUnit').value;
+            const image = document.getElementById('newProductImage').value;
+
+            if (!name) {
+                alert('Veuillez remplir au moins le nom du produit');
+                return;
+            }
+
+            try {
+                const newProduct = await productsAPI.create({
+                    name, 
+                    category: normalizeCategory(category), 
+                    unit: unit || 'kg', 
+                    image: image || '📦'
+                });
+                
+                appData.products.push(newProduct);
+                
+                document.getElementById('newProductName').value = '';
+                document.getElementById('newProductCategory').value = '';
+                document.getElementById('newProductUnit').value = '';
+                document.getElementById('newProductImage').value = '';
+
+                render();
+            } catch (error) {
+                alert('Erreur lors de l\'ajout du produit');
+            }
+        }
+
+        async function updateProduct(productId) {
+            const product = appData.products.find(p => p.id === productId);
+            if (!product) return;
+
+            const name = document.getElementById('editProductName').value;
+            const category = document.getElementById('editProductCategory').value;
+            const unit = document.getElementById('editProductUnit').value;
+            const image = document.getElementById('editProductImage').value;
+
+            if (!name) {
+                alert('Le nom du produit est obligatoire');
+                return;
+            }
+
+            try {
+                const updatedProduct = await productsAPI.update(productId, {
+                    name,
+                    category: normalizeCategory(category),
+                    unit,
+                    image
+                });
+
+                const index = appData.products.findIndex(p => p.id === productId);
+                appData.products[index] = updatedProduct;
+
+                alert('Produit mis à jour avec succès !');
+                render();
+            } catch (error) {
+                alert('Erreur lors de la mise à jour du produit');
+            }
+        }
+
+        async function deleteProduct(id) {
+            if (!confirm('Voulez-vous vraiment supprimer ce produit ?')) return;
+            
+            try {
+                await productsAPI.delete(id);
+                appData.products = appData.products.filter(p => p.id !== id);
+                
+                // Supprimer aussi des attributions
+                Object.keys(appData.assignments).forEach(clientId => {
+                    appData.assignments[clientId] = appData.assignments[clientId].filter(pid => pid !== id);
+                });
+                
+                selectedProduct = null;
+                render();
+            } catch (error) {
+                alert('Erreur lors de la suppression du produit');
+            }
+        }
+
+        function getClientsWithProduct(productId) {
+            const clients = [];
+            Object.keys(appData.assignments).forEach(clientId => {
+                if (appData.assignments[clientId].includes(productId)) {
+                    const client = appData.users[clientId];
+                    if (client) clients.push(client);
+                }
+            });
+            return clients;
+        }
+
+        // ============================================
+        // GESTION DES CLIENTS
+        // ============================================
+        async function addClient() {
+            const name = document.getElementById('newClientName').value;
+            const username = document.getElementById('newClientUsername').value;
+            const password = document.getElementById('newClientPassword').value;
+            const email = document.getElementById('newClientEmail').value;
+            const phone = document.getElementById('newClientPhone').value;
+            const address = document.getElementById('newClientAddress').value;
+
+            if (!username || !password || !email) {
+                alert('Veuillez remplir au moins l\'identifiant, le mot de passe et l\'email');
+                return;
+            }
+
+            try {
+                const newUser = await usersAPI.create({ 
+                    username, password, email, name, phone, address 
+                });
+                
+                appData.users[newUser.id] = newUser;
+                appData.assignments[newUser.id] = [];
+
+                document.getElementById('newClientName').value = '';
+                document.getElementById('newClientUsername').value = '';
+                document.getElementById('newClientPassword').value = '';
+                document.getElementById('newClientEmail').value = '';
+                document.getElementById('newClientPhone').value = '';
+                document.getElementById('newClientAddress').value = '';
+
+                render();
+            } catch (error) {
+                alert('Erreur lors de la création du client');
+            }
+        }
+
+        async function updateClient(clientId) {
+            const client = appData.users[clientId];
+            if (!client) return;
+
+            const name = document.getElementById('editClientName').value;
+            const username = document.getElementById('editClientUsername').value;
+            const password = document.getElementById('editClientPassword').value;
+            const email = document.getElementById('editClientEmail').value;
+            const phone = document.getElementById('editClientPhone').value;
+            const address = document.getElementById('editClientAddress').value;
+
+            if (!username || !password || !email) {
+                alert('L\'identifiant, le mot de passe et l\'email sont obligatoires');
+                return;
+            }
+
+            try {
+                const updatedUser = await usersAPI.update(clientId, {
+                    name,
+                    username,
+                    password,
+                    email,
+                    phone,
+                    address
+                });
+
+                appData.users[clientId] = updatedUser;
+
+                alert('Client mis à jour avec succès !');
+                render();
+            } catch (error) {
+                alert('Erreur lors de la mise à jour du client');
+            }
+        }
+
+        async function deleteClient(clientId) {
+            if (!confirm('Êtes-vous sûr de vouloir supprimer ce client ? Cette action est irréversible.')) {
+                return;
+            }
+
+            try {
+                await usersAPI.delete(clientId);
+                delete appData.users[clientId];
+                delete appData.assignments[clientId];
+                selectedClient = null;
+
+                alert('Client supprimé avec succès');
+                switchTab('clients');
+            } catch (error) {
+                alert('Erreur lors de la suppression du client');
+            }
+        }
+
+        // ============================================
+        // GESTION DES ATTRIBUTIONS
+        // ============================================
+        async function toggleAssignment(clientId, productId) {
+            if (!appData.assignments[clientId]) {
+                appData.assignments[clientId] = [];
+            }
+
+            const index = appData.assignments[clientId].indexOf(productId);
+            
+            try {
+                if (index > -1) {
+                    await assignmentsAPI.delete(clientId, productId);
+                    appData.assignments[clientId].splice(index, 1);
+                } else {
+                    await assignmentsAPI.create(clientId, productId);
+                    appData.assignments[clientId].push(productId);
+                }
+                render();
+            } catch (error) {
+                alert('Erreur lors de la modification de l\'attribution');
+            }
+        }
+
+        // ============================================
+        // GESTION DU PANIER
+        // ============================================
+        function addToCart(productId) {
+            const product = appData.products.find(p => p.id === productId);
+            const existing = cart.find(item => item.id === productId);
+
+            if (existing) {
+                existing.quantity++;
+            } else {
+                cart.push({ ...product, quantity: 1 });
+            }
+
+            render();
+        }
+
+        function updateQuantity(productId, delta) {
+            const item = cart.find(i => i.id === productId);
+            if (item) {
+                item.quantity += delta;
+                if (item.quantity <= 0) {
+                    removeFromCart(productId);
+                } else {
+                    render();
+                }
+            } else if (delta > 0) {
+                addToCart(productId);
+            }
+        }
+
+        function getProductQuantityInCart(productId) {
+            const item = cart.find(i => i.id === productId);
+            return item ? item.quantity : 0;
+        }
+
+        function removeFromCart(productId) {
+            cart = cart.filter(item => item.id !== productId);
+            editingQuantity = null;
+            render();
+        }
+
+        // ============================================
+        // GESTION DES COMMANDES
+        // ============================================
+        async function submitOrder() {
+            if (cart.length === 0) {
+                alert('Votre panier est vide');
+                return;
+            }
+
+            const deliveryDate = document.getElementById('orderDeliveryDate').value;
+            const comment = document.getElementById('orderComment').value;
+
+            if (!deliveryDate) {
+                alert('Veuillez sélectionner une date de livraison souhaitée');
+                return;
+            }
+
+            try {
+                const orderData = {
+                    clientId: currentUser.id,
+                    clientName: currentUser.name || currentUser.username,
+                    clientEmail: currentUser.email,
+                    clientPhone: currentUser.phone || '',
+                    clientAddress: currentUser.address || '',
+                    items: cart.map(item => ({
+                        id: item.id,
+                        name: item.name,
+                        image: item.image,
+                        unit: item.unit,
+                        quantity: item.quantity
+                    })),
+                    deliveryDate: deliveryDate,
+                    comment: comment
+                };
+
+                const newOrder = await ordersAPI.create(orderData);
+                appData.orders.push(newOrder);
+
+                cart = [];
+                editingQuantity = null;
+                alert('Commande envoyée avec succès !');
+                render();
+            } catch (error) {
+                console.error('Erreur commande:', error);
+                alert('Erreur lors de l\'envoi de la commande');
+            }
+        }
+
+        async function deleteOrder(orderId) {
+            if (!confirm('Voulez-vous vraiment supprimer cette commande ?')) return;
+
+            try {
+                await ordersAPI.delete(orderId);
+                appData.orders = appData.orders.filter(o => o.id !== orderId);
+                render();
+            } catch (error) {
+                alert('Erreur lors de la suppression de la commande');
+            }
+        }
+
+        function downloadOrderPDF(orderId) {
+            const order = appData.orders.find(o => o.id === orderId);
+            if (!order) {
+                alert('Commande introuvable');
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Titre
+            doc.setFontSize(20);
+            doc.setFont(undefined, 'bold');
+            doc.text('Bon de commande', 14, 20);
+
+            // Numéro et dates
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'bold');
+            doc.text('Numéro de commande :', 14, 35);
+            doc.setFont(undefined, 'normal');
+            doc.text(order.id, 14, 40);
+
+            doc.setFont(undefined, 'bold');
+            doc.text('Date de la commande :', 120, 35);
+            doc.setFont(undefined, 'normal');
+            const orderDate = order.date ? order.date.split(' ')[0] : new Date(order.order_date).toLocaleDateString('fr-FR');
+            doc.text(orderDate, 120, 40);
+
+            // Date de livraison souhaitée
+            doc.setFont(undefined, 'bold');
+            doc.text('Date de livraison souhaitée :', 120, 48);
+            doc.setFont(undefined, 'normal');
+            const deliveryDate = new Date(order.delivery_date);
+            doc.text(deliveryDate.toLocaleDateString('fr-FR'), 120, 53);
+
+            // Adresse du fournisseur
+            doc.setFont(undefined, 'bold');
+            doc.text('Adresse du fournisseur :', 14, 65);
+            doc.setFont(undefined, 'normal');
+            doc.text('LES VERGERS DE PARIS', 14, 70);
+            doc.text('104 rue d\'angers', 14, 75);
+            doc.text('94584 RUNGIS CEDEX', 14, 80);
+            doc.text('France', 14, 85);
+
+            // Adresse de livraison
+            doc.setFont(undefined, 'bold');
+            doc.text('Adresse de livraison :', 120, 65);
+            doc.setFont(undefined, 'normal');
+            doc.text(order.client_name, 120, 70);
+            if (order.client_address) {
+                const addressLines = doc.splitTextToSize(order.client_address, 70);
+                doc.text(addressLines, 120, 75);
+            }
+            doc.text('France', 120, 85);
+            if (order.client_phone) {
+                doc.text(order.client_phone, 120, 90);
+            }
+
+            // Tableau des produits
+            const tableData = order.items.map(item => [
+                item.product_name,
+                item.unit,
+                item.quantity.toString()
+            ]);
+
+            doc.autoTable({
+                startY: 100,
+                head: [['Article', 'Conditionnement', 'Quantité']],
+                body: tableData,
+                theme: 'grid',
+                headStyles: {
+                    fillColor: [255, 255, 255],
+                    textColor: [0, 0, 0],
+                    fontStyle: 'bold',
+                    lineWidth: 0.5,
+                    lineColor: [0, 0, 0]
+                },
+                styles: {
+                    fontSize: 10,
+                    cellPadding: 5,
+                    lineColor: [0, 0, 0],
+                    lineWidth: 0.1
+                },
+                columnStyles: {
+                    0: { cellWidth: 80 },
+                    1: { cellWidth: 60 },
+                    2: { cellWidth: 40, halign: 'center' }
+                }
+            });
+
+            // Commentaire s'il existe
+            if (order.comment) {
+                const finalY = doc.lastAutoTable.finalY + 10;
+                doc.setFont(undefined, 'bold');
+                doc.text('Commentaire :', 14, finalY);
+                doc.setFont(undefined, 'normal');
+                const commentLines = doc.splitTextToSize(order.comment, 180);
+                doc.text(commentLines, 14, finalY + 5);
+            }
+
+            // Télécharger le PDF
+            doc.save(`Bon_commande_${order.id}.pdf`);
+        }
+
+        // ============================================
+        // INITIALISATION
+        // ============================================
+        
+        // Vérifier d'abord s'il y a une session sauvegardée
+        checkSavedSession().then(() => {
+            // Si pas de session sauvegardée, charger les données normalement
+            if (!currentUser) {
+                loadData();
+            }
+        });
+    </script>
+</body>
+</html>

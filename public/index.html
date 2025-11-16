@@ -881,14 +881,17 @@
         let filters = {
             productSearch: '',
             productCategory: 'all',
+            productSubcategory: 'all',
             clientProductSearch: '',
             clientProductCategory: 'all',
+            clientProductSubcategory: 'all',
             clientSearch: '',
             orderSearch: '',
             assignmentClientSearch: '',
             assignmentProductFilter: 'all',
             assignmentHasProduct: 'all',
-            assignmentCategoryFilter: 'all'
+            assignmentCategoryFilter: 'all',
+            assignmentSubcategoryFilter: 'all'
         };
         let activeFilterInput = null;
         let editingQuantity = null;
@@ -1077,6 +1080,10 @@
                                     <input type="text" id="editProductCategory" value="${product.category}" placeholder="Catégorie">
                                 </div>
                                 <div class="form-group">
+                                    <label>Sous-catégorie (optionnelle)</label>
+                                    <input type="text" id="editProductSubcategory" value="${product.subcategory || ''}" placeholder="Sous-catégorie">
+                                </div>
+                                <div class="form-group">
                                     <label>Unité / Conditionnement</label>
                                     <input type="text" id="editProductUnit" value="${product.unit}" placeholder="Ex: kg, pièce, botte, caisse...">
                                     <div class="unit-hint">Suggestions: kg, pièce, botte, caisse, litre, barquette</div>
@@ -1110,7 +1117,7 @@
                 `;
             }
             
-            const filteredProducts = filterProducts(appData.products, filters.productSearch, filters.productCategory);
+            const filteredProducts = filterProducts(appData.products, filters.productSearch, filters.productCategory, filters.productSubcategory);
             
             const productsByCategory = {};
             filteredProducts.forEach(p => {
@@ -1126,6 +1133,7 @@
                     <div class="form-row">
                         <input type="text" id="newProductName" placeholder="Nom du produit">
                         <input type="text" id="newProductCategory" placeholder="Catégorie">
+                        <input type="text" id="newProductSubcategory" placeholder="Sous-catégorie (optionnelle)">
                         <div>
                             <input type="text" id="newProductUnit" placeholder="Unité (kg, pièce, botte...)">
                             <div class="unit-hint">Ex: kg, pièce, botte, caisse, litre, barquette</div>
@@ -1138,7 +1146,7 @@
                 <div class="card">
                     <h2 class="card-title">Catalogue (${appData.products.length} produits)</h2>
                     
-                    ${renderFilterBar('productSearch', 'productCategory')}
+                    ${renderFilterBar('productSearch', 'productCategory', 'productSubcategory')}
                     
                     ${filteredProducts.length === 0 ? 
                         '<div class="empty-state">Aucun produit ne correspond à votre recherche</div>' :
@@ -1155,7 +1163,7 @@
                                                 <button class="icon-btn" onclick="event.stopPropagation(); deleteProduct('${p.id}')">🗑️</button>
                                             </div>
                                             <div class="product-name">${p.name}</div>
-                                            <div class="product-category">${p.category}</div>
+                                            <div class="product-category">${p.category}${p.subcategory ? ' › ' + p.subcategory : ''}</div>
                                             <div style="color: #6b7280; font-size: 14px; margin-top: 5px;">${p.unit}</div>
                                             <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #e5e7eb; color: #16a34a; font-size: 13px; font-weight: 600;">
                                                 ➜ Cliquer pour modifier
@@ -1232,10 +1240,10 @@
 
                         <h3 style="font-size: 18px; font-weight: 700; color: #1f2937; margin-bottom: 15px;">Attribution des produits</h3>
                         
-                        ${renderFilterBar('clientProductSearch', 'clientProductCategory')}
+                        ${renderFilterBar('clientProductSearch', 'clientProductCategory', 'clientProductSubcategory')}
                         
                         <div class="assignment-grid">
-                            ${filterProducts(appData.products, filters.clientProductSearch, filters.clientProductCategory).map(p => {
+                            ${filterProducts(appData.products, filters.clientProductSearch, filters.clientProductCategory, filters.clientProductSubcategory).map(p => {
                                 const isAssigned = (appData.assignments[client.id] || []).includes(p.id);
                                 return `
                                     <button class="assignment-btn ${isAssigned ? 'active' : ''}" onclick="toggleAssignment('${client.id}', '${p.id}')">
@@ -1320,10 +1328,14 @@
                 );
             }
 
-            // 2. Déterminer les produits cibles en fonction des filtres de produit ou de catégorie
+            // 2. Déterminer les produits cibles en fonction des filtres de produit, catégorie ou sous-catégorie
             let targetProductIds = [];
             if (filters.assignmentProductFilter !== 'all') {
                 targetProductIds = [filters.assignmentProductFilter];
+            } else if (filters.assignmentSubcategoryFilter !== 'all') {
+                targetProductIds = appData.products
+                    .filter(p => p.category === filters.assignmentCategoryFilter && p.subcategory === filters.assignmentSubcategoryFilter)
+                    .map(p => p.id);
             } else if (filters.assignmentCategoryFilter !== 'all') {
                 targetProductIds = appData.products
                     .filter(p => p.category === filters.assignmentCategoryFilter)
@@ -1347,20 +1359,31 @@
             
             // 4. Déterminer la liste des produits à afficher pour chaque client
             let productsToShow = appData.products;
-            if (filters.assignmentCategoryFilter !== 'all') {
+            if (filters.assignmentSubcategoryFilter !== 'all') {
+                productsToShow = appData.products.filter(p => 
+                    p.category === filters.assignmentCategoryFilter && 
+                    p.subcategory === filters.assignmentSubcategoryFilter
+                );
+            } else if (filters.assignmentCategoryFilter !== 'all') {
                 productsToShow = appData.products.filter(p => p.category === filters.assignmentCategoryFilter);
             }
             
             // 5. Préparer les données pour les menus déroulants et les labels
-            const productsForDropdown = filters.assignmentCategoryFilter !== 'all' 
-                ? appData.products.filter(p => p.category === filters.assignmentCategoryFilter)
-                : appData.products;
+            const productsForDropdown = filters.assignmentSubcategoryFilter !== 'all'
+                ? appData.products.filter(p => p.category === filters.assignmentCategoryFilter && p.subcategory === filters.assignmentSubcategoryFilter)
+                : filters.assignmentCategoryFilter !== 'all' 
+                    ? appData.products.filter(p => p.category === filters.assignmentCategoryFilter)
+                    : appData.products;
             
             const categories = getCategories();
+            const subcategories = getSubcategories(filters.assignmentCategoryFilter);
             
             let hasProductLabel = `✅ Ont ce produit`;
             let hasNotProductLabel = `❌ N'ont pas ce produit`;
-            if (filters.assignmentProductFilter === 'all' && filters.assignmentCategoryFilter !== 'all') {
+            if (filters.assignmentProductFilter === 'all' && filters.assignmentSubcategoryFilter !== 'all') {
+                hasProductLabel = `✅ Ont un produit '${filters.assignmentSubcategoryFilter}'`;
+                hasNotProductLabel = `❌ N'ont aucun produit '${filters.assignmentSubcategoryFilter}'`;
+            } else if (filters.assignmentProductFilter === 'all' && filters.assignmentCategoryFilter !== 'all') {
                 hasProductLabel = `✅ Ont un produit '${filters.assignmentCategoryFilter}'`;
                 hasNotProductLabel = `❌ N'ont aucun produit '${filters.assignmentCategoryFilter}'`;
             }
@@ -1407,9 +1430,33 @@
                                 </div>
                             </div>
                             
+                            ${subcategories.length > 0 ? `
                             <div>
                                 <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">
-                                    📦 Filtrer par produit ${filters.assignmentCategoryFilter !== 'all' ? `(${filters.assignmentCategoryFilter} uniquement)` : ''}
+                                    📑 Filtrer par sous-catégorie
+                                </label>
+                                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                    <button 
+                                        onclick="activeFilterInput = null; updateFilter('assignmentSubcategoryFilter', 'all')"
+                                        class="filter-category-btn ${filters.assignmentSubcategoryFilter === 'all' ? 'active' : ''}"
+                                    >
+                                        Toutes
+                                    </button>
+                                    ${subcategories.map(subcat => `
+                                        <button 
+                                            onclick="activeFilterInput = null; updateFilter('assignmentSubcategoryFilter', '${subcat}')"
+                                            class="filter-category-btn ${filters.assignmentSubcategoryFilter === subcat ? 'active' : ''}"
+                                        >
+                                            ${subcat}
+                                        </button>
+                                    `).join('')}
+                                </div>
+                            </div>
+                            ` : ''}
+                            
+                            <div>
+                                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">
+                                    📦 Filtrer par produit ${filters.assignmentCategoryFilter !== 'all' ? `(${filters.assignmentCategoryFilter}${filters.assignmentSubcategoryFilter !== 'all' ? ' › ' + filters.assignmentSubcategoryFilter : ''} uniquement)` : ''}
                                 </label>
                                 <select 
                                     id="filter-assignmentProductFilter"
@@ -1457,14 +1504,14 @@
                             ` : ''}
                         </div>
                         
-                        ${filters.assignmentClientSearch || filters.assignmentProductFilter !== 'all' || filters.assignmentCategoryFilter !== 'all' ? `
+                        ${filters.assignmentClientSearch || filters.assignmentProductFilter !== 'all' || filters.assignmentCategoryFilter !== 'all' || filters.assignmentSubcategoryFilter !== 'all' ? `
                             <div style="margin-top: 15px; padding: 12px; background: #fff7ed; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
                                 <div style="font-size: 14px; color: #ea580c; font-weight: 600;">
                                     📊 ${filteredClients.length} client${filteredClients.length > 1 ? 's' : ''} trouvé${filteredClients.length > 1 ? 's' : ''}
-                                    ${filters.assignmentCategoryFilter !== 'all' ? ` • Produits ${filters.assignmentCategoryFilter} affichés` : ''}
+                                    ${filters.assignmentCategoryFilter !== 'all' ? ` • Produits ${filters.assignmentCategoryFilter}${filters.assignmentSubcategoryFilter !== 'all' ? ' › ' + filters.assignmentSubcategoryFilter : ''} affichés` : ''}
                                 </div>
                                 <button 
-                                    onclick="filters.assignmentClientSearch = ''; filters.assignmentProductFilter = 'all'; filters.assignmentHasProduct = 'all'; filters.assignmentCategoryFilter = 'all'; render();"
+                                    onclick="filters.assignmentClientSearch = ''; filters.assignmentProductFilter = 'all'; filters.assignmentHasProduct = 'all'; filters.assignmentCategoryFilter = 'all'; filters.assignmentSubcategoryFilter = 'all'; render();"
                                     style="padding: 6px 12px; background: white; border: 2px solid #ea580c; border-radius: 6px; color: #ea580c; font-weight: 600; cursor: pointer; font-size: 13px;"
                                 >
                                     Réinitialiser les filtres
@@ -1567,7 +1614,7 @@
                 (appData.assignments[currentUser.id] || []).includes(p.id)
             );
 
-            const filteredProducts = filterProducts(assignedProducts, filters.clientProductSearch, filters.clientProductCategory);
+            const filteredProducts = filterProducts(assignedProducts, filters.clientProductSearch, filters.clientProductCategory, filters.clientProductSubcategory);
 
             const productsByCategory = {};
             filteredProducts.forEach(p => {
@@ -1603,7 +1650,7 @@
                                 ${assignedProducts.length === 0 ? 
                                     '<div class="empty-state">Aucun produit ne vous est attribué pour le moment.</div>' :
                                     `
-                                    ${renderFilterBar('clientProductSearch', 'clientProductCategory')}
+                                    ${renderFilterBar('clientProductSearch', 'clientProductCategory', 'clientProductSubcategory')}
                                     
                                     ${filteredProducts.length === 0 ? 
                                         '<div class="empty-state">Aucun produit ne correspond à votre recherche</div>' :
@@ -1855,11 +1902,19 @@
             return categories.sort();
         }
 
-        function filterProducts(products, searchTerm, category) {
+        function getSubcategories(category) {
+            if (!category || category === 'all') return [];
+            return [...new Set(appData.products
+                .filter(p => p.category === category && p.subcategory)
+                .map(p => p.subcategory))].sort();
+        }
+
+        function filterProducts(products, searchTerm, category, subcategory) {
             return products.filter(p => {
                 const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
                 const matchesCategory = category === 'all' || p.category === category;
-                return matchesSearch && matchesCategory;
+                const matchesSubcategory = !subcategory || subcategory === 'all' || p.subcategory === subcategory;
+                return matchesSearch && matchesCategory && matchesSubcategory;
             });
         }
 
@@ -1867,10 +1922,24 @@
     filters[filterName] = value;
     activeFilterInput = 'filter-' + filterName;
     
+    // Reset subcategory when category changes
+    if (filterName === 'productCategory') {
+        filters.productSubcategory = 'all';
+    }
+    if (filterName === 'clientProductCategory') {
+        filters.clientProductSubcategory = 'all';
+    }
     if (filterName === 'assignmentCategoryFilter') {
+        filters.assignmentSubcategoryFilter = 'all';
         const selectedProduct = appData.products.find(p => p.id === filters.assignmentProductFilter);
         if (filters.assignmentProductFilter !== 'all' && selectedProduct && value !== 'all' && selectedProduct.category !== value) {
             filters.assignmentProductFilter = 'all';
+            filters.assignmentHasProduct = 'all';
+        }
+    }
+    if (filterName === 'assignmentSubcategoryFilter' || filterName === 'assignmentProductFilter') {
+        // Reset assignmentHasProduct if product filter changes
+        if (filterName === 'assignmentProductFilter' && value === 'all') {
             filters.assignmentHasProduct = 'all';
         }
     }
@@ -1918,8 +1987,10 @@
             `;
         }
 
-        function renderFilterBar(searchFilterName, categoryFilterName) {
+        function renderFilterBar(searchFilterName, categoryFilterName, subcategoryFilterName) {
             const categories = getCategories();
+            const subcategories = getSubcategories(filters[categoryFilterName]);
+            
             return `
                 <div style="background: #f9fafb; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
                     <div style="display: grid; grid-template-columns: 1fr; gap: 15px;">
@@ -1957,6 +2028,29 @@
                                 `).join('')}
                             </div>
                         </div>
+                        ${subcategories.length > 0 ? `
+                        <div>
+                            <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">
+                                📑 Filtrer par sous-catégorie
+                            </label>
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                <button 
+                                    onclick="activeFilterInput = null; updateFilter('${subcategoryFilterName}', 'all')"
+                                    class="filter-category-btn ${filters[subcategoryFilterName] === 'all' ? 'active' : ''}"
+                                >
+                                    Toutes
+                                </button>
+                                ${subcategories.map(subcat => `
+                                    <button 
+                                        onclick="activeFilterInput = null; updateFilter('${subcategoryFilterName}', '${subcat}')"
+                                        class="filter-category-btn ${filters[subcategoryFilterName] === subcat ? 'active' : ''}"
+                                    >
+                                        ${subcat}
+                                    </button>
+                                `).join('')}
+                            </div>
+                        </div>
+                        ` : ''}
                     </div>
                 </div>
             `;
@@ -1968,6 +2062,7 @@
         async function addProduct() {
             const name = document.getElementById('newProductName').value;
             const category = document.getElementById('newProductCategory').value;
+            const subcategory = document.getElementById('newProductSubcategory').value;
             const unit = document.getElementById('newProductUnit').value;
             const image = document.getElementById('newProductImage').value;
 
@@ -1980,6 +2075,7 @@
                 const newProduct = await productsAPI.create({
                     name, 
                     category: normalizeCategory(category), 
+                    subcategory: subcategory ? normalizeCategory(subcategory) : null,
                     unit: unit || 'kg', 
                     image: image || '📦'
                 });
@@ -1988,6 +2084,7 @@
                 
                 document.getElementById('newProductName').value = '';
                 document.getElementById('newProductCategory').value = '';
+                document.getElementById('newProductSubcategory').value = '';
                 document.getElementById('newProductUnit').value = '';
                 document.getElementById('newProductImage').value = '';
 
@@ -2003,6 +2100,7 @@
 
             const name = document.getElementById('editProductName').value;
             const category = document.getElementById('editProductCategory').value;
+            const subcategory = document.getElementById('editProductSubcategory').value;
             const unit = document.getElementById('editProductUnit').value;
             const image = document.getElementById('editProductImage').value;
 
@@ -2015,6 +2113,7 @@
                 const updatedProduct = await productsAPI.update(productId, {
                     name,
                     category: normalizeCategory(category),
+                    subcategory: subcategory ? normalizeCategory(subcategory) : null,
                     unit,
                     image
                 });

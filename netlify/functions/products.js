@@ -29,12 +29,12 @@ export async function handler(event) {
 
     // POST /products - Créer un nouveau produit
     if (event.httpMethod === 'POST') {
-      const { name, category, unit, image } = JSON.parse(event.body);
+      const { name, category, subcategory, unit, image } = JSON.parse(event.body);
       const id = 'p' + Date.now();
       
       await sql`
-        INSERT INTO products (id, name, category, unit, image)
-        VALUES (${id}, ${name}, ${category}, ${unit}, ${image})
+        INSERT INTO products (id, name, category, subcategory, unit, image)
+        VALUES (${id}, ${name}, ${category}, ${subcategory || null}, ${unit}, ${image})
       `;
       
       const [newProduct] = await sql`SELECT * FROM products WHERE id = ${id}`;
@@ -48,12 +48,13 @@ export async function handler(event) {
     // PUT /products/:id - Mettre à jour un produit
     if (event.httpMethod === 'PUT') {
       const id = path.replace('/', '');
-      const { name, category, unit, image } = JSON.parse(event.body);
+      const { name, category, subcategory, unit, image } = JSON.parse(event.body);
       
       await sql`
         UPDATE products 
         SET name = ${name}, 
             category = ${category}, 
+            subcategory = ${subcategory || null}, 
             unit = ${unit}, 
             image = ${image}
         WHERE id = ${id}

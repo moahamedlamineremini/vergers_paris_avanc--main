@@ -55,66 +55,43 @@ export async function handler(event) {
       const { username, password, email, name, phone, address } = JSON.parse(event.body);
       const id = 'client' + Date.now();
       
-      try {
-        // Créer l'utilisateur
-        await sql`
-          INSERT INTO users (id, username, password, role, email, name, phone, address)
-          VALUES (${id}, ${username}, ${password}, 'client', ${email}, ${name}, ${phone}, ${address})
-        `;
+      // Créer l'utilisateur
+      await sql`
+        INSERT INTO users (id, username, password, role, email, name, phone, address)
+        VALUES (${id}, ${username}, ${password}, 'client', ${email}, ${name}, ${phone}, ${address})
+      `;
+      
+      // Récupérer tous les produits
+      const products = await sql`SELECT id FROM products`;
+      
+      // Assigner tous les produits au nouveau client
+      if (products.length > 0) {
+        // Créer les insertions en masse
+        const assignmentValues = products.map(product => ({
+          client_id: id,
+          product_id: product.id
+        }));
         
-        // Récupérer tous les produits
-        const products = await sql`SELECT id FROM products`;
-        
-        console.log(`Assigning ${products.length} products to client ${id}`);
-        
-        // Assigner tous les produits au nouveau client par lots de 100
-        if (products.length > 0) {
-          const batchSize = 100;
-          let assignedCount = 0;
-          
-          for (let i = 0; i < products.length; i += batchSize) {
-            const batch = products.slice(i, i + batchSize);
-            
-            // Préparer les promesses pour ce lot
-            const promises = batch.map(product => 
-              sql`
-                INSERT INTO assignments (client_id, product_id)
-                VALUES (${id}, ${product.id})
-                ON CONFLICT (client_id, product_id) DO NOTHING
-              `.catch(err => {
-                console.log(`Error assigning product ${product.id}:`, err.message);
-                return null;
-              })
-            );
-            
-            // Exécuter toutes les insertions du lot en parallèle
-            await Promise.all(promises);
-            assignedCount += batch.length;
-            console.log(`Assigned ${assignedCount}/${products.length} products`);
+        // Insérer toutes les assignations
+        for (const assignment of assignmentValues) {
+          try {
+            await sql`
+              INSERT INTO assignments (client_id, product_id)
+              VALUES (${assignment.client_id}, ${assignment.product_id})
+            `;
+          } catch (error) {
+            // Ignorer les doublons si l'assignation existe déjà
+            console.log(`Assignment already exists: ${assignment.client_id} - ${assignment.product_id}`);
           }
-          
-          console.log(`Successfully assigned all ${products.length} products to client ${id}`);
         }
-        
-        const [newUser] = await sql`SELECT * FROM users WHERE id = ${id}`;
-        return {
-          statusCode: 201,
-          headers,
-          body: JSON.stringify({
-            ...newUser,
-            products_assigned: products.length
-          })
-        };
-      } catch (error) {
-        console.error('Error creating client:', error);
-        // Si une erreur survient, supprimer le client créé
-        try {
-          await sql`DELETE FROM users WHERE id = ${id}`;
-        } catch (deleteError) {
-          console.error('Error deleting client after failure:', deleteError);
-        }
-        throw error;
       }
+      
+      const [newUser] = await sql`SELECT * FROM users WHERE id = ${id}`;
+      return {
+        statusCode: 201,
+        headers,
+        body: JSON.stringify(newUser)
+      };
     }
 
     // PUT /users/:id - Mettre à jour un utilisateur

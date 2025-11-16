@@ -68,21 +68,11 @@ export async function handler(event) {
         ON CONFLICT (client_id, product_id) DO NOTHING
       `;
       
-      // Compter le nombre de produits assignés
-      const [countResult] = await sql`
-        SELECT COUNT(*) as products_assigned 
-        FROM assignments 
-        WHERE client_id = ${id}
-      `;
-      
       const [newUser] = await sql`SELECT * FROM users WHERE id = ${id}`;
       return {
         statusCode: 201,
         headers,
-        body: JSON.stringify({
-          ...newUser,
-          products_assigned: parseInt(countResult.products_assigned)
-        })
+        body: JSON.stringify(newUser)
       };
     }
 

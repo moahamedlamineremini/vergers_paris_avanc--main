@@ -68,7 +68,17 @@ export async function handler(event) {
         ON CONFLICT (client_id, product_id) DO NOTHING
       `;
       
-      const [newUser] = await sql`SELECT * FROM users WHERE id = ${id}`;
+      // Récupérer l'utilisateur avec toutes ses données à jour
+      const [newUser] = await sql`
+        SELECT 
+          u.*,
+          COUNT(a.product_id) as products_count
+        FROM users u
+        LEFT JOIN assignments a ON u.id = a.client_id
+        WHERE u.id = ${id}
+        GROUP BY u.id, u.username, u.password, u.role, u.email, u.name, u.phone, u.address, u.created_at
+      `;
+      
       return {
         statusCode: 201,
         headers,

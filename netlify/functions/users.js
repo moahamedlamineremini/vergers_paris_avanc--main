@@ -55,10 +55,36 @@ export async function handler(event) {
       const { username, password, email, name, phone, address } = JSON.parse(event.body);
       const id = 'client' + Date.now();
       
+      // Créer l'utilisateur
       await sql`
         INSERT INTO users (id, username, password, role, email, name, phone, address)
         VALUES (${id}, ${username}, ${password}, 'client', ${email}, ${name}, ${phone}, ${address})
       `;
+      
+      // Récupérer tous les produits
+      const products = await sql`SELECT id FROM products`;
+      
+      // Assigner tous les produits au nouveau client
+      if (products.length > 0) {
+        // Créer les insertions en masse
+        const assignmentValues = products.map(product => ({
+          client_id: id,
+          product_id: product.id
+        }));
+        
+        // Insérer toutes les assignations
+        for (const assignment of assignmentValues) {
+          try {
+            await sql`
+              INSERT INTO assignments (client_id, product_id)
+              VALUES (${assignment.client_id}, ${assignment.product_id})
+            `;
+          } catch (error) {
+            // Ignorer les doublons si l'assignation existe déjà
+            console.log(`Assignment already exists: ${assignment.client_id} - ${assignment.product_id}`);
+          }
+        }
+      }
       
       const [newUser] = await sql`SELECT * FROM users WHERE id = ${id}`;
       return {

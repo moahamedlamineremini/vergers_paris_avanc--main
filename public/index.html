@@ -2431,46 +2431,83 @@
                 doc.text(order.client_phone, 120, 90);
             }
 
-            // Tableau des produits
-            const tableData = order.items.map(item => [
-                item.product_name,
-                item.unit,
-                item.quantity.toString()
-            ]);
-
-            doc.autoTable({
-                startY: 100,
-                head: [['Article', 'Conditionnement', 'Quantité']],
-                body: tableData,
-                theme: 'grid',
-                headStyles: {
-                    fillColor: [255, 255, 255],
-                    textColor: [0, 0, 0],
-                    fontStyle: 'bold',
-                    lineWidth: 0.5,
-                    lineColor: [0, 0, 0]
-                },
-                styles: {
-                    fontSize: 10,
-                    cellPadding: 5,
-                    lineColor: [0, 0, 0],
-                    lineWidth: 0.1
-                },
-                columnStyles: {
-                    0: { cellWidth: 80 },
-                    1: { cellWidth: 60 },
-                    2: { cellWidth: 40, halign: 'center' }
+            // Grouper les produits par catégorie
+            const itemsByCategory = {};
+            order.items.forEach(item => {
+                const product = appData.products.find(p => p.id === item.product_id);
+                const category = product ? product.category : 'Autre';
+                if (!itemsByCategory[category]) {
+                    itemsByCategory[category] = [];
                 }
+                itemsByCategory[category].push(item);
+            });
+
+            // Trier les catégories par numéro
+            const sortedCategories = Object.keys(itemsByCategory).sort((a, b) => {
+                const numA = parseInt(a.split(':')[0]);
+                const numB = parseInt(b.split(':')[0]);
+                return numA - numB;
+            });
+
+            // Créer le tableau avec catégories
+            let currentY = 100;
+            sortedCategories.forEach((category, index) => {
+                // Nom de la catégorie
+                const categoryName = category.split(':')[1]?.trim() || category;
+                doc.setFontSize(12);
+                doc.setFont(undefined, 'bold');
+                doc.setTextColor(21, 128, 61); // Vert #15803d
+                doc.text(categoryName.toUpperCase(), 14, currentY);
+                doc.setTextColor(0, 0, 0); // Retour au noir
+                currentY += 7;
+
+                // Tableau des produits de cette catégorie
+                const tableData = itemsByCategory[category].map(item => [
+                    item.product_name,
+                    categoryName,
+                    item.unit,
+                    item.quantity.toString()
+                ]);
+
+                doc.autoTable({
+                    startY: currentY,
+                    head: [['Article', 'Catégorie', 'Conditionnement', 'Quantité']],
+                    body: tableData,
+                    theme: 'grid',
+                    headStyles: {
+                        fillColor: [255, 255, 255],
+                        textColor: [0, 0, 0],
+                        fontStyle: 'bold',
+                        lineWidth: 0.5,
+                        lineColor: [0, 0, 0]
+                    },
+                    styles: {
+                        fontSize: 9,
+                        cellPadding: 3,
+                        lineColor: [0, 0, 0],
+                        lineWidth: 0.1
+                    },
+                    columnStyles: {
+                        0: { cellWidth: 65 },
+                        1: { cellWidth: 45 },
+                        2: { cellWidth: 50 },
+                        3: { cellWidth: 30, halign: 'center' }
+                    }
+                });
+
+                currentY = doc.lastAutoTable.finalY + 5;
             });
 
             // Commentaire s'il existe
             if (order.comment) {
-                const finalY = doc.lastAutoTable.finalY + 10;
+                currentY += 5;
+                doc.setFontSize(10);
                 doc.setFont(undefined, 'bold');
-                doc.text('Commentaire :', 14, finalY);
+                doc.setTextColor(0, 0, 0);
+                doc.text('Commentaire :', 14, currentY);
                 doc.setFont(undefined, 'normal');
                 const commentLines = doc.splitTextToSize(order.comment, 180);
-                doc.text(commentLines, 14, finalY + 5);
+                doc.text(commentLines, 14, currentY + 5);
             }
 
             // Télécharger le PDF

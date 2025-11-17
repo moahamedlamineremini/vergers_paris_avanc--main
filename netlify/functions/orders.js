@@ -42,7 +42,7 @@ function generateOrderPDF(order, products) {
 
     // Adresse livraison
     doc.font('Helvetica-Bold').text('Livraison:', 350, 160);
-    doc.fontSize(12).font('Helvetica-Bold').text(order.client_name, 350, 175);
+    doc.fontSize(13).font('Helvetica-Bold').text(order.client_name, 350, 175);
     doc.fontSize(10).font('Helvetica');
     if (order.client_address) {
       doc.text(order.client_address, 350, 192, { width: 200 });

@@ -2420,8 +2420,11 @@
             // Adresse de livraison
             doc.setFont(undefined, 'bold');
             doc.text('Adresse de livraison :', 120, 65);
+            doc.setFontSize(16);
             doc.setFont(undefined, 'normal');
             doc.text(order.client_name, 120, 70);
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
             if (order.client_address) {
                 const addressLines = doc.splitTextToSize(order.client_address, 70);
                 doc.text(addressLines, 120, 75);

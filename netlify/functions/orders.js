@@ -6,7 +6,7 @@ const sql = neon(process.env.DATABASE_URL);
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Fonction pour générer le PDF avec PDFKit
-function generateOrderPDF(order) {
+function generateOrderPDF(order, products) {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ margin: 50 });
     const buffers = [];
@@ -52,10 +52,11 @@ function generateOrderPDF(order) {
 
     doc.moveDown(3);
 
-    // Trier les produits par catégorie
+    // Grouper les produits par catégorie
     const itemsByCategory = {};
     order.items.forEach(item => {
-      const category = item.category || 'Autre';
+      const product = products.find(p => p.id === item.product_id);
+      const category = product ? product.category : 'Autre';
       if (!itemsByCategory[category]) {
         itemsByCategory[category] = [];
       }
@@ -69,57 +70,59 @@ function generateOrderPDF(order) {
       return numA - numB;
     });
 
-    // Tableau des produits
+    // Afficher les produits par catégorie
     let yPosition = 270;
-    
-    sortedCategories.forEach((category, catIndex) => {
-      // Vérifier si on a assez d'espace pour la catégorie
+
+    sortedCategories.forEach((category, index) => {
+      // Nom de la catégorie
+      const categoryName = category.split(':')[1]?.trim() || category;
+      
       if (yPosition > 700) {
         doc.addPage();
         yPosition = 50;
       }
 
-      // Afficher le nom de la catégorie
-      doc.fontSize(12).font('Helvetica-Bold');
-      doc.fillColor('#15803d');
-      doc.text(category.split(':')[1].trim().toUpperCase(), 50, yPosition);
-      doc.fillColor('#000000');
+      // Titre de catégorie en vert
+      doc.fontSize(12).font('Helvetica-Bold').fillColor('#15803d').text(categoryName.toUpperCase(), 50, yPosition);
       yPosition += 20;
 
-      // En-tête du tableau pour cette catégorie
-      doc.fontSize(10).font('Helvetica-Bold');
+      // En-tête du tableau
+      doc.fontSize(10).fillColor('#000000');
+      doc.font('Helvetica-Bold');
       doc.text('Article', 50, yPosition);
-      doc.text('Conditionnement', 300, yPosition);
-      doc.text('Quantité', 470, yPosition, { width: 80, align: 'center' });
+      doc.text('Catégorie', 220, yPosition);
+      doc.text('Conditionnement', 330, yPosition);
+      doc.text('Quantité', 470, yPosition);
 
       // Ligne sous l'en-tête
-      doc.moveTo(50, yPosition + 15).lineTo(550, yPosition + 15).stroke();
-      yPosition += 25;
+      yPosition += 15;
+      doc.moveTo(50, yPosition).lineTo(550, yPosition).stroke();
+      yPosition += 10;
 
       // Produits de cette catégorie
-      doc.font('Helvetica').fontSize(9);
-      itemsByCategory[category].forEach((item) => {
-        if (yPosition > 720) {
+      doc.font('Helvetica');
+      itemsByCategory[category].forEach(item => {
+        if (yPosition > 700) {
           doc.addPage();
           yPosition = 50;
         }
         
-        // Nom du produit avec limitation de largeur pour éviter le chevauchement
-        doc.text(item.product_name, 50, yPosition, { width: 240, ellipsis: true });
-        doc.text(item.unit, 300, yPosition, { width: 160 });
-        doc.text(item.quantity.toString(), 470, yPosition, { width: 80, align: 'center' });
+        doc.text(item.product_name, 50, yPosition, { width: 160 });
+        doc.text(categoryName, 220, yPosition, { width: 100 });
+        doc.text(item.unit, 330, yPosition, { width: 130 });
+        doc.text(item.quantity.toString(), 470, yPosition);
         
         yPosition += 20;
       });
 
       // Ligne de fin de catégorie
       doc.moveTo(50, yPosition).lineTo(550, yPosition).stroke();
-      yPosition += 25;
+      yPosition += 15;
     });
 
     // Commentaire
     if (order.comment) {
-      yPosition += 30;
+      yPosition += 15;
       if (yPosition > 700) {
         doc.addPage();
         yPosition = 50;
@@ -221,37 +224,42 @@ export async function handler(event) {
       newOrder.items = orderItems;
       newOrder.date = new Date(newOrder.order_date).toLocaleString('fr-FR');
       
-      // Générer le PDF
-      const pdfBuffer = await generateOrderPDF(newOrder);
+      // Récupérer les produits pour avoir les catégories
+      const products = await sql`SELECT id, category FROM products`;
+      
+      // Générer le PDF avec catégories
+      const pdfBuffer = await generateOrderPDF(newOrder, products);
       const pdfBase64 = pdfBuffer.toString('base64');
       
-      // Liste des produits pour l'email groupés par catégorie
+      // Grouper les produits par catégorie pour l'email
       const itemsByCategory = {};
       newOrder.items.forEach(item => {
-        const category = item.category || 'Autre';
+        const product = products.find(p => p.id === item.product_id);
+        const category = product ? product.category : 'Autre';
         if (!itemsByCategory[category]) {
           itemsByCategory[category] = [];
         }
         itemsByCategory[category].push(item);
       });
-      
-      // Trier les catégories par numéro
+
+      // Trier les catégories
       const sortedCategories = Object.keys(itemsByCategory).sort((a, b) => {
         const numA = parseInt(a.split(':')[0]);
         const numB = parseInt(b.split(':')[0]);
         return numA - numB;
       });
-      
-      // Créer le HTML avec catégories
+
+      // Générer le HTML des produits par catégorie
       const productsListHtml = sortedCategories.map(category => {
         const categoryName = category.split(':')[1]?.trim() || category;
-        const itemsHtml = itemsByCategory[category]
-          .map(item => `<li style="margin-left: 20px;">${item.product_image} ${item.product_name} - ${item.quantity} ${item.unit}</li>`)
-          .join('');
+        const itemsHtml = itemsByCategory[category].map(item => 
+          `<li style="margin: 5px 0;">${item.product_image} ${item.product_name} - ${item.quantity} ${item.unit}</li>`
+        ).join('');
+        
         return `
-          <div style="margin-bottom: 15px;">
-            <strong style="color: #15803d; font-size: 16px;">${categoryName.toUpperCase()}</strong>
-            <ul style="margin: 5px 0;">
+          <div style="margin: 15px 0;">
+            <h4 style="color: #15803d; margin: 10px 0 5px 0;">${categoryName.toUpperCase()}</h4>
+            <ul style="margin: 0; padding-left: 20px;">
               ${itemsHtml}
             </ul>
           </div>
@@ -285,9 +293,7 @@ export async function handler(event) {
               </div>
               
               <h3 style="color: #15803d; margin-top: 25px;">Produits commandés:</h3>
-              <div style="font-size: 15px;">
-                ${productsListHtml}
-              </div>
+              ${productsListHtml}
               
               ${comment ? `
                 <div style="background: #fff7ed; padding: 15px; border-radius: 8px; margin: 20px 0;">

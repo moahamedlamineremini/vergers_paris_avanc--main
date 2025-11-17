@@ -158,8 +158,10 @@ export async function handler(event) {
       // Récupérer les items pour chaque commande
       for (const order of orders) {
         const items = await sql`
-          SELECT * FROM order_items 
-          WHERE order_id = ${order.id}
+          SELECT oi.*, p.category 
+          FROM order_items oi
+          LEFT JOIN products p ON oi.product_id = p.id
+          WHERE oi.order_id = ${order.id}
         `;
         order.items = items;
         order.date = new Date(order.order_date).toLocaleString('fr-FR');

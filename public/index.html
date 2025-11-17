@@ -2464,13 +2464,13 @@
                 // Tableau des produits de cette catégorie
                 const tableData = itemsByCategory[category].map(item => [
                     item.product_name,
-                    item.unit,
-                    item.quantity.toString()
+                    item.quantity.toString(),
+                    item.unit
                 ]);
 
                 doc.autoTable({
                     startY: currentY,
-                    head: [['Article', 'Conditionnement', 'Quantité']],
+                    head: [['Article', 'Quantité', 'Conditionnement']],
                     body: tableData,
                     theme: 'grid',
                     headStyles: {
@@ -2488,8 +2488,8 @@
                     },
                     columnStyles: {
                         0: { cellWidth: 80 },
-                        1: { cellWidth: 60 },
-                        2: { cellWidth: 40, halign: 'center' }
+                        1: { cellWidth: 40, halign: 'center' },
+                        2: { cellWidth: 60 }
                     }
                 });
 

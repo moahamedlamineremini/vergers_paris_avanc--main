@@ -42,9 +42,10 @@ function generateOrderPDF(order, products) {
 
     // Adresse livraison
     doc.font('Helvetica-Bold').text('Livraison:', 350, 160);
-    doc.font('Helvetica').text(order.client_name, 350, 175);
+    doc.fontSize(12).font('Helvetica-Bold').text(order.client_name, 350, 175);
+    doc.fontSize(10).font('Helvetica');
     if (order.client_address) {
-      doc.text(order.client_address, 350, 190, { width: 200 });
+      doc.text(order.client_address, 350, 192, { width: 200 });
     }
     if (order.client_phone) {
       doc.text(`Tél: ${order.client_phone}`, 350, 220);
@@ -90,8 +91,8 @@ function generateOrderPDF(order, products) {
       doc.fontSize(10).fillColor('#000000');
       doc.font('Helvetica-Bold');
       doc.text('Article', 50, yPosition);
-      doc.text('Conditionnement', 300, yPosition);
-      doc.text('Quantité', 470, yPosition, { width: 80, align: 'center' });
+      doc.text('Quantité', 300, yPosition, { width: 80, align: 'center' });
+      doc.text('Conditionnement', 390, yPosition);
 
       // Ligne sous l'en-tête
       yPosition += 15;
@@ -107,8 +108,8 @@ function generateOrderPDF(order, products) {
         }
         
         doc.text(item.product_name, 50, yPosition, { width: 240, ellipsis: true });
-        doc.text(item.unit, 300, yPosition, { width: 160 });
-        doc.text(item.quantity.toString(), 470, yPosition, { width: 80, align: 'center' });
+        doc.text(item.quantity.toString(), 300, yPosition, { width: 80, align: 'center' });
+        doc.text(item.unit, 390, yPosition, { width: 150 });
         
         yPosition += 20;
       });

@@ -158,10 +158,8 @@ export async function handler(event) {
       // Récupérer les items pour chaque commande
       for (const order of orders) {
         const items = await sql`
-          SELECT oi.*, p.category 
-          FROM order_items oi
-          LEFT JOIN products p ON oi.product_id = p.id
-          WHERE oi.order_id = ${order.id}
+          SELECT * FROM order_items 
+          WHERE order_id = ${order.id}
         `;
         order.items = items;
         order.date = new Date(order.order_date).toLocaleString('fr-FR');
@@ -215,13 +213,10 @@ export async function handler(event) {
         `;
       }
       
-      // Récupérer la commande créée avec ses items et catégories
+      // Récupérer la commande créée avec ses items
       const [newOrder] = await sql`SELECT * FROM orders WHERE id = ${orderId}`;
       const orderItems = await sql`
-        SELECT oi.*, p.category 
-        FROM order_items oi
-        LEFT JOIN products p ON oi.product_id = p.id
-        WHERE oi.order_id = ${orderId}
+        SELECT * FROM order_items WHERE order_id = ${orderId}
       `;
       newOrder.items = orderItems;
       newOrder.date = new Date(newOrder.order_date).toLocaleString('fr-FR');
@@ -230,10 +225,38 @@ export async function handler(event) {
       const pdfBuffer = await generateOrderPDF(newOrder);
       const pdfBase64 = pdfBuffer.toString('base64');
       
-      // Liste des produits pour l'email
-      const productsListHtml = newOrder.items.map(item => 
-        `<li>${item.product_image} ${item.product_name} - ${item.quantity} ${item.unit}</li>`
-      ).join('');
+      // Liste des produits pour l'email groupés par catégorie
+      const itemsByCategory = {};
+      newOrder.items.forEach(item => {
+        const category = item.category || 'Autre';
+        if (!itemsByCategory[category]) {
+          itemsByCategory[category] = [];
+        }
+        itemsByCategory[category].push(item);
+      });
+      
+      // Trier les catégories par numéro
+      const sortedCategories = Object.keys(itemsByCategory).sort((a, b) => {
+        const numA = parseInt(a.split(':')[0]);
+        const numB = parseInt(b.split(':')[0]);
+        return numA - numB;
+      });
+      
+      // Créer le HTML avec catégories
+      const productsListHtml = sortedCategories.map(category => {
+        const categoryName = category.split(':')[1]?.trim() || category;
+        const itemsHtml = itemsByCategory[category]
+          .map(item => `<li style="margin-left: 20px;">${item.product_image} ${item.product_name} - ${item.quantity} ${item.unit}</li>`)
+          .join('');
+        return `
+          <div style="margin-bottom: 15px;">
+            <strong style="color: #15803d; font-size: 16px;">${categoryName.toUpperCase()}</strong>
+            <ul style="margin: 5px 0;">
+              ${itemsHtml}
+            </ul>
+          </div>
+        `;
+      }).join('');
       
       // Envoyer l'email à l'admin UNIQUEMENT
       try {
@@ -262,9 +285,9 @@ export async function handler(event) {
               </div>
               
               <h3 style="color: #15803d; margin-top: 25px;">Produits commandés:</h3>
-              <ul style="line-height: 2; font-size: 15px;">
+              <div style="font-size: 15px;">
                 ${productsListHtml}
-              </ul>
+              </div>
               
               ${comment ? `
                 <div style="background: #fff7ed; padding: 15px; border-radius: 8px; margin: 20px 0;">

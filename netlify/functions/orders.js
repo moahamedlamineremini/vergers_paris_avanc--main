@@ -52,35 +52,70 @@ function generateOrderPDF(order) {
 
     doc.moveDown(3);
 
+    // Trier les produits par catégorie
+    const itemsByCategory = {};
+    order.items.forEach(item => {
+      const category = item.category || 'Autre';
+      if (!itemsByCategory[category]) {
+        itemsByCategory[category] = [];
+      }
+      itemsByCategory[category].push(item);
+    });
+
+    // Trier les catégories par numéro
+    const sortedCategories = Object.keys(itemsByCategory).sort((a, b) => {
+      const numA = parseInt(a.split(':')[0]);
+      const numB = parseInt(b.split(':')[0]);
+      return numA - numB;
+    });
+
     // Tableau des produits
-    const tableTop = 270;
-    doc.font('Helvetica-Bold');
-    doc.text('Article', 50, tableTop);
-    doc.text('Conditionnement', 250, tableTop);
-    doc.text('Quantité', 450, tableTop, { width: 100, align: 'center' });
-
-    // Ligne sous l'en-tête
-    doc.moveTo(50, tableTop + 15).lineTo(550, tableTop + 15).stroke();
-
-    // Produits
-    let yPosition = tableTop + 25;
-    doc.font('Helvetica');
+    let yPosition = 270;
     
-    order.items.forEach((item, index) => {
+    sortedCategories.forEach((category, catIndex) => {
+      // Vérifier si on a assez d'espace pour la catégorie
       if (yPosition > 700) {
         doc.addPage();
         yPosition = 50;
       }
-      
-      doc.text(item.product_name, 50, yPosition);
-      doc.text(item.unit, 250, yPosition);
-      doc.text(item.quantity.toString(), 450, yPosition, { width: 100, align: 'center' });
-      
+
+      // Afficher le nom de la catégorie
+      doc.fontSize(12).font('Helvetica-Bold');
+      doc.fillColor('#15803d');
+      doc.text(category.split(':')[1].trim().toUpperCase(), 50, yPosition);
+      doc.fillColor('#000000');
+      yPosition += 20;
+
+      // En-tête du tableau pour cette catégorie
+      doc.fontSize(10).font('Helvetica-Bold');
+      doc.text('Article', 50, yPosition);
+      doc.text('Conditionnement', 300, yPosition);
+      doc.text('Quantité', 470, yPosition, { width: 80, align: 'center' });
+
+      // Ligne sous l'en-tête
+      doc.moveTo(50, yPosition + 15).lineTo(550, yPosition + 15).stroke();
+      yPosition += 25;
+
+      // Produits de cette catégorie
+      doc.font('Helvetica').fontSize(9);
+      itemsByCategory[category].forEach((item) => {
+        if (yPosition > 720) {
+          doc.addPage();
+          yPosition = 50;
+        }
+        
+        // Nom du produit avec limitation de largeur pour éviter le chevauchement
+        doc.text(item.product_name, 50, yPosition, { width: 240, ellipsis: true });
+        doc.text(item.unit, 300, yPosition, { width: 160 });
+        doc.text(item.quantity.toString(), 470, yPosition, { width: 80, align: 'center' });
+        
+        yPosition += 20;
+      });
+
+      // Ligne de fin de catégorie
+      doc.moveTo(50, yPosition).lineTo(550, yPosition).stroke();
       yPosition += 25;
     });
-
-    // Ligne de fin
-    doc.moveTo(50, yPosition).lineTo(550, yPosition).stroke();
 
     // Commentaire
     if (order.comment) {
@@ -178,10 +213,13 @@ export async function handler(event) {
         `;
       }
       
-      // Récupérer la commande créée avec ses items
+      // Récupérer la commande créée avec ses items et catégories
       const [newOrder] = await sql`SELECT * FROM orders WHERE id = ${orderId}`;
       const orderItems = await sql`
-        SELECT * FROM order_items WHERE order_id = ${orderId}
+        SELECT oi.*, p.category 
+        FROM order_items oi
+        LEFT JOIN products p ON oi.product_id = p.id
+        WHERE oi.order_id = ${orderId}
       `;
       newOrder.items = orderItems;
       newOrder.date = new Date(newOrder.order_date).toLocaleString('fr-FR');

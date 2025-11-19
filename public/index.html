@@ -950,13 +950,13 @@
                 inputElem.value = '';
                 inputElem.focus();
                 
-                // Réinitialiser la sous-catégorie si elle existe
+                // Activer la sous-catégorie pour permettre l'ajout d'une nouvelle
                 if (subcategorySelectId && subcategoryInputId) {
                     const subcatSelect = document.getElementById(subcategorySelectId);
                     const subcatInput = document.getElementById(subcategoryInputId);
                     subcatSelect.value = '';
                     subcatSelect.innerHTML = '<option value="">Sélectionner une sous-catégorie</option><option value="__new__">➕ Nouvelle sous-catégorie</option>';
-                    subcatSelect.disabled = true;
+                    subcatSelect.disabled = false; // ACTIVÉ pour permettre l'ajout d'une nouvelle sous-catégorie
                     subcatInput.style.display = 'none';
                     subcatInput.value = '';
                 }

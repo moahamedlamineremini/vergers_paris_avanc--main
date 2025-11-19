@@ -690,6 +690,24 @@
             color: #6b7280;
             margin-top: 4px;
         }
+
+        .form-group select {
+            width: 100%;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 18px;
+            padding-right: 40px;
+        }
+
+        .form-group {
+            position: relative;
+        }
+
+        .form-group input[style*="display: none"] + button {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
@@ -901,6 +919,111 @@
             return category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
         }
 
+        // Fonction pour obtenir toutes les catégories uniques
+        function getUniqueCategories() {
+            const categories = new Set();
+            appData.products.forEach(p => {
+                if (p.category) categories.add(p.category);
+            });
+            return Array.from(categories).sort();
+        }
+
+        // Fonction pour obtenir toutes les sous-catégories uniques d'une catégorie
+        function getUniqueSubcategories(category) {
+            const subcategories = new Set();
+            appData.products.forEach(p => {
+                if (p.category === category && p.subcategory) {
+                    subcategories.add(p.subcategory);
+                }
+            });
+            return Array.from(subcategories).sort();
+        }
+
+        // Fonction pour gérer le changement de sélection de catégorie (nouveau vs existant)
+        function handleCategoryChange(selectId, inputId, subcategorySelectId, subcategoryInputId) {
+            const selectElem = document.getElementById(selectId);
+            const inputElem = document.getElementById(inputId);
+            
+            if (selectElem.value === '__new__') {
+                selectElem.style.display = 'none';
+                inputElem.style.display = 'block';
+                inputElem.value = '';
+                inputElem.focus();
+                
+                // Réinitialiser la sous-catégorie si elle existe
+                if (subcategorySelectId && subcategoryInputId) {
+                    const subcatSelect = document.getElementById(subcategorySelectId);
+                    const subcatInput = document.getElementById(subcategoryInputId);
+                    subcatSelect.value = '';
+                    subcatSelect.innerHTML = '<option value="">Sélectionner une sous-catégorie</option><option value="__new__">➕ Nouvelle sous-catégorie</option>';
+                    subcatSelect.disabled = true;
+                    subcatInput.style.display = 'none';
+                    subcatInput.value = '';
+                }
+            } else if (selectElem.value) {
+                // Mettre à jour les sous-catégories disponibles si c'est une catégorie existante
+                if (subcategorySelectId) {
+                    updateSubcategoryOptions(selectElem.value, subcategorySelectId);
+                }
+            }
+        }
+
+        // Fonction pour gérer le changement de sous-catégorie
+        function handleSubcategoryChange(selectId, inputId) {
+            const selectElem = document.getElementById(selectId);
+            const inputElem = document.getElementById(inputId);
+            
+            if (selectElem.value === '__new__') {
+                selectElem.style.display = 'none';
+                inputElem.style.display = 'block';
+                inputElem.value = '';
+                inputElem.focus();
+            }
+        }
+
+        // Fonction pour revenir au select quand on clique sur le bouton retour
+        function backToSelect(selectId, inputId) {
+            const selectElem = document.getElementById(selectId);
+            const inputElem = document.getElementById(inputId);
+            
+            selectElem.style.display = 'block';
+            inputElem.style.display = 'none';
+            selectElem.value = '';
+        }
+
+        // Fonction pour mettre à jour les options de sous-catégorie
+        function updateSubcategoryOptions(category, subcategorySelectId) {
+            const subcatSelect = document.getElementById(subcategorySelectId);
+            if (!subcatSelect) return;
+            
+            const subcategories = getUniqueSubcategories(category);
+            subcatSelect.disabled = false;
+            subcatSelect.innerHTML = '<option value="">Sélectionner une sous-catégorie</option>';
+            
+            subcategories.forEach(subcat => {
+                const option = document.createElement('option');
+                option.value = subcat;
+                option.textContent = subcat;
+                subcatSelect.appendChild(option);
+            });
+            
+            const newOption = document.createElement('option');
+            newOption.value = '__new__';
+            newOption.textContent = '➕ Nouvelle sous-catégorie';
+            subcatSelect.appendChild(newOption);
+        }
+
+        // Fonction pour obtenir la valeur finale (depuis select ou input)
+        function getFinalValue(selectId, inputId) {
+            const selectElem = document.getElementById(selectId);
+            const inputElem = document.getElementById(inputId);
+            
+            if (inputElem.style.display !== 'none' && inputElem.value.trim()) {
+                return inputElem.value.trim();
+            }
+            return selectElem.value !== '__new__' ? selectElem.value : '';
+        }
+
         function togglePasswordVisibility(inputId) {
             const input = document.getElementById(inputId);
             const button = input.nextElementSibling;
@@ -1075,14 +1198,41 @@
                                     <label>Nom du produit</label>
                                     <input type="text" id="editProductName" value="${product.name}" placeholder="Nom du produit">
                                 </div>
+                                
                                 <div class="form-group">
                                     <label>Catégorie</label>
-                                    <input type="text" id="editProductCategory" value="${product.category}" placeholder="Catégorie">
+                                    <select id="editProductCategorySelect" onchange="handleCategoryChange('editProductCategorySelect', 'editProductCategoryInput', 'editProductSubcategorySelect', 'editProductSubcategoryInput')">
+                                        <option value="">Sélectionner une catégorie</option>
+                                        ${getUniqueCategories().map(cat => `<option value="${cat}" ${cat === product.category ? 'selected' : ''}>${cat}</option>`).join('')}
+                                        <option value="__new__">➕ Nouvelle catégorie</option>
+                                    </select>
+                                    <div style="position: relative;">
+                                        <input type="text" id="editProductCategoryInput" placeholder="Nouvelle catégorie" style="display: none;">
+                                        <button type="button" onclick="backToSelect('editProductCategorySelect', 'editProductCategoryInput')" 
+                                                id="editProductCategoryBack" 
+                                                style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 20px; color: #6b7280; padding: 0; width: 30px; height: 30px; display: none;">
+                                            ← 
+                                        </button>
+                                    </div>
                                 </div>
+                                
                                 <div class="form-group">
                                     <label>Sous-catégorie (optionnelle)</label>
-                                    <input type="text" id="editProductSubcategory" value="${product.subcategory || ''}" placeholder="Sous-catégorie">
+                                    <select id="editProductSubcategorySelect" onchange="handleSubcategoryChange('editProductSubcategorySelect', 'editProductSubcategoryInput')">
+                                        <option value="">Sélectionner une sous-catégorie</option>
+                                        ${getUniqueSubcategories(product.category).map(subcat => `<option value="${subcat}" ${subcat === product.subcategory ? 'selected' : ''}>${subcat}</option>`).join('')}
+                                        <option value="__new__">➕ Nouvelle sous-catégorie</option>
+                                    </select>
+                                    <div style="position: relative;">
+                                        <input type="text" id="editProductSubcategoryInput" placeholder="Nouvelle sous-catégorie" style="display: none;">
+                                        <button type="button" onclick="backToSelect('editProductSubcategorySelect', 'editProductSubcategoryInput')" 
+                                                id="editProductSubcategoryBack" 
+                                                style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 20px; color: #6b7280; padding: 0; width: 30px; height: 30px; display: none;">
+                                            ← 
+                                        </button>
+                                    </div>
                                 </div>
+                                
                                 <div class="form-group">
                                     <label>Unité / Conditionnement</label>
                                     <input type="text" id="editProductUnit" value="${product.unit}" placeholder="Ex: kg, pièce, botte, caisse...">
@@ -1132,8 +1282,40 @@
                     <h2 class="card-title">Ajouter un produit</h2>
                     <div class="form-row">
                         <input type="text" id="newProductName" placeholder="Nom du produit">
-                        <input type="text" id="newProductCategory" placeholder="Catégorie">
-                        <input type="text" id="newProductSubcategory" placeholder="Sous-catégorie (optionnelle)">
+                        
+                        <div class="form-group">
+                            <label>Catégorie</label>
+                            <select id="newProductCategorySelect" onchange="handleCategoryChange('newProductCategorySelect', 'newProductCategoryInput', 'newProductSubcategorySelect', 'newProductSubcategoryInput')">
+                                <option value="">Sélectionner une catégorie</option>
+                                ${getUniqueCategories().map(cat => `<option value="${cat}">${cat}</option>`).join('')}
+                                <option value="__new__">➕ Nouvelle catégorie</option>
+                            </select>
+                            <div style="position: relative;">
+                                <input type="text" id="newProductCategoryInput" placeholder="Nouvelle catégorie" style="display: none;">
+                                <button type="button" onclick="backToSelect('newProductCategorySelect', 'newProductCategoryInput')" 
+                                        id="newProductCategoryBack" 
+                                        style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 20px; color: #6b7280; padding: 0; width: 30px; height: 30px; display: none;">
+                                    ← 
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Sous-catégorie (optionnelle)</label>
+                            <select id="newProductSubcategorySelect" disabled onchange="handleSubcategoryChange('newProductSubcategorySelect', 'newProductSubcategoryInput')">
+                                <option value="">Sélectionner une sous-catégorie</option>
+                                <option value="__new__">➕ Nouvelle sous-catégorie</option>
+                            </select>
+                            <div style="position: relative;">
+                                <input type="text" id="newProductSubcategoryInput" placeholder="Nouvelle sous-catégorie" style="display: none;">
+                                <button type="button" onclick="backToSelect('newProductSubcategorySelect', 'newProductSubcategoryInput')" 
+                                        id="newProductSubcategoryBack" 
+                                        style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 20px; color: #6b7280; padding: 0; width: 30px; height: 30px; display: none;">
+                                    ← 
+                                </button>
+                            </div>
+                        </div>
+                        
                         <div>
                             <input type="text" id="newProductUnit" placeholder="Unité (kg, pièce, botte...)">
                             <div class="unit-hint">Ex: kg, pièce, botte, caisse, litre, barquette</div>
@@ -2061,13 +2243,18 @@
         // ============================================
         async function addProduct() {
             const name = document.getElementById('newProductName').value;
-            const category = document.getElementById('newProductCategory').value;
-            const subcategory = document.getElementById('newProductSubcategory').value;
+            const category = getFinalValue('newProductCategorySelect', 'newProductCategoryInput');
+            const subcategory = getFinalValue('newProductSubcategorySelect', 'newProductSubcategoryInput');
             const unit = document.getElementById('newProductUnit').value;
             const image = document.getElementById('newProductImage').value;
 
             if (!name) {
                 alert('Veuillez remplir au moins le nom du produit');
+                return;
+            }
+
+            if (!category) {
+                alert('Veuillez sélectionner ou saisir une catégorie');
                 return;
             }
 
@@ -2083,8 +2270,15 @@
                 appData.products.push(newProduct);
                 
                 document.getElementById('newProductName').value = '';
-                document.getElementById('newProductCategory').value = '';
-                document.getElementById('newProductSubcategory').value = '';
+                document.getElementById('newProductCategorySelect').value = '';
+                document.getElementById('newProductCategoryInput').value = '';
+                document.getElementById('newProductCategoryInput').style.display = 'none';
+                document.getElementById('newProductCategorySelect').style.display = 'block';
+                document.getElementById('newProductSubcategorySelect').value = '';
+                document.getElementById('newProductSubcategorySelect').disabled = true;
+                document.getElementById('newProductSubcategoryInput').value = '';
+                document.getElementById('newProductSubcategoryInput').style.display = 'none';
+                document.getElementById('newProductSubcategorySelect').style.display = 'block';
                 document.getElementById('newProductUnit').value = '';
                 document.getElementById('newProductImage').value = '';
 
@@ -2099,13 +2293,18 @@
             if (!product) return;
 
             const name = document.getElementById('editProductName').value;
-            const category = document.getElementById('editProductCategory').value;
-            const subcategory = document.getElementById('editProductSubcategory').value;
+            const category = getFinalValue('editProductCategorySelect', 'editProductCategoryInput');
+            const subcategory = getFinalValue('editProductSubcategorySelect', 'editProductSubcategoryInput');
             const unit = document.getElementById('editProductUnit').value;
             const image = document.getElementById('editProductImage').value;
 
             if (!name) {
                 alert('Le nom du produit est obligatoire');
+                return;
+            }
+
+            if (!category) {
+                alert('Veuillez sélectionner ou saisir une catégorie');
                 return;
             }
 

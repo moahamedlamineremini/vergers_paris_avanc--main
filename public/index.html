@@ -708,6 +708,41 @@
         .form-group input[style*="display: none"] + button {
             display: none !important;
         }
+
+        .search-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .search-wrapper input {
+            flex: 1;
+        }
+
+        .search-btn {
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(21, 128, 61, 0.3);
+        }
+
+        .search-btn:active {
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body>
@@ -1081,17 +1116,6 @@
                 return;
             }
 
-            // Sauvegarder l'élément actif et sa position de curseur avant le render
-            const activeElement = document.activeElement;
-            let savedSelection = null;
-            if (activeElement && activeElement.tagName === 'INPUT' && activeElement.id && activeElement.id.startsWith('filter-')) {
-                savedSelection = {
-                    id: activeElement.id,
-                    selectionStart: activeElement.selectionStart,
-                    selectionEnd: activeElement.selectionEnd
-                };
-            }
-
             if (!currentUser) {
                 app.innerHTML = renderLogin();
             } else if (currentUser.role === 'admin') {
@@ -1100,16 +1124,7 @@
                 app.innerHTML = renderClient();
             }
             
-            // Restaurer le focus et la position du curseur après le render
-            if (savedSelection) {
-                setTimeout(() => {
-                    const input = document.getElementById(savedSelection.id);
-                    if (input) {
-                        input.focus();
-                        input.setSelectionRange(savedSelection.selectionStart, savedSelection.selectionEnd);
-                    }
-                }, 0);
-            } else if (activeFilterInput) {
+            if (activeFilterInput) {
                 const input = document.getElementById(activeFilterInput);
                 if (input) {
                     setTimeout(() => {
@@ -2120,10 +2135,10 @@
             });
         }
 
-        function updateFilter(filterName, value) {
+        function updateFilter(filterName, value, shouldRender = true) {
     filters[filterName] = value;
     
-    // Ne définir activeFilterInput que pour les filtres non-search (boutons, etc.)
+    // Ne définir activeFilterInput que pour les filtres non-search
     if (!filterName.includes('Search')) {
         activeFilterInput = 'filter-' + filterName;
     }
@@ -2150,190 +2165,14 @@
         }
     }
     
-    // Pour les champs de recherche texte, utiliser un debounce plus long
-    // et ne mettre à jour que le contenu filtré, pas le champ de recherche
-    if (filterName.includes('Search')) {
-        clearTimeout(window.searchTimeout);
-        window.searchTimeout = setTimeout(() => {
-            renderFilteredContent();
-        }, 400); // Attendre 400ms après la dernière frappe
-    } else {
-        // Pour les filtres par boutons/select, render immédiatement
+    // Pour les champs de recherche texte, ne render que si demandé (onblur)
+    // Pour les autres filtres (boutons/select), render immédiatement
+    if (shouldRender && !filterName.includes('Search')) {
+        render();
+    } else if (shouldRender && filterName.includes('Search')) {
         render();
     }
 }
-
-        // Fonction pour mettre à jour uniquement le contenu filtré sans toucher aux champs de recherche
-        function renderFilteredContent() {
-            if (!currentUser) return;
-            
-            if (currentUser.role === 'admin') {
-                if (currentTab === 'products') {
-                    updateProductsList();
-                } else if (currentTab === 'clients') {
-                    updateClientsList();
-                } else if (currentTab === 'assignments') {
-                    updateAssignmentsList();
-                }
-            } else {
-                updateClientProductsList();
-            }
-        }
-
-        function updateProductsList() {
-            const container = document.querySelector('.card:last-of-type');
-            if (!container) return render();
-            
-            const filteredProducts = filterProducts(appData.products, filters.productSearch, filters.productCategory, filters.productSubcategory);
-            const productsByCategory = {};
-            filteredProducts.forEach(p => {
-                if (!productsByCategory[p.category]) {
-                    productsByCategory[p.category] = [];
-                }
-                productsByCategory[p.category].push(p);
-            });
-            
-            let html = `<h2 class="card-title">Catalogue (${appData.products.length} produits)</h2>`;
-            html += renderFilterBar('productSearch', 'productCategory', 'productSubcategory');
-            
-            if (filteredProducts.length === 0) {
-                html += '<div class="empty-state">Aucun produit ne correspond à votre recherche</div>';
-            } else {
-                const sortedCategories = Object.keys(productsByCategory).sort();
-                sortedCategories.forEach(category => {
-                    html += `<h3 style="margin: 25px 0 15px 0; color: #15803d; font-size: 20px;">${category}</h3>`;
-                    html += '<div class="grid grid-4">';
-                    productsByCategory[category].forEach(p => {
-                        const clientsWithProduct = getClientsWithProduct(p.id);
-                        html += `
-                            <div class="product-card" onclick="selectedProduct='${p.id}'; render()">
-                                <div class="product-icon">${p.image}</div>
-                                <div class="product-name">${p.name}</div>
-                                <div class="product-category">${p.unit}</div>
-                                ${clientsWithProduct.length > 0 ? 
-                                    `<div style="margin-top: 8px; font-size: 12px; color: #6b7280;">👥 ${clientsWithProduct.length} client(s)</div>` : ''}
-                            </div>`;
-                    });
-                    html += '</div>';
-                });
-            }
-            
-            if (filteredProducts.length < appData.products.length) {
-                html += `<p style="text-align: center; color: #6b7280; margin-top: 20px; font-size: 14px;">
-                    ${appData.products.length - filteredProducts.length} produit(s) masqué(s) par les filtres
-                </p>`;
-            }
-            
-            container.innerHTML = html;
-        }
-
-        function updateClientsList() {
-            const container = document.querySelector('.card:last-of-type');
-            if (!container) return render();
-            
-            const clients = Object.values(appData.users).filter(u => u.role === 'client');
-            const filteredClients = filterClients(clients, filters.clientSearch);
-            
-            let html = `<h2 class="card-title">Clients (${clients.length})</h2>`;
-            html += renderSearchBar('clientSearch', 'Rechercher par nom, email, téléphone, adresse...');
-            
-            if (filteredClients.length === 0) {
-                html += '<div class="empty-state">Aucun client ne correspond à votre recherche</div>';
-            } else {
-                html += '<div class="grid grid-2">';
-                filteredClients.forEach(c => {
-                    const productCount = (appData.assignments[c.id] || []).length;
-                    html += `
-                        <div class="client-card" onclick="selectedClient='${c.id}'; render()">
-                            <div class="flex-between">
-                                <div>
-                                    <h3>${c.name || c.username}</h3>
-                                    <p style="color: #6b7280; font-size: 14px; margin-top: 5px;">📧 ${c.email}</p>
-                                    ${c.phone ? `<p style="color: #6b7280; font-size: 14px;">📞 ${c.phone}</p>` : ''}
-                                </div>
-                                <div class="badge badge-orange">${productCount} produit(s)</div>
-                            </div>
-                        </div>`;
-                });
-                html += '</div>';
-            }
-            
-            if (filteredClients.length < clients.length) {
-                html += `<p style="text-align: center; color: #6b7280; margin-top: 20px; font-size: 14px;">
-                    ${clients.length - filteredClients.length} client(s) masqué(s) par les filtres
-                </p>`;
-            }
-            
-            container.innerHTML = html;
-        }
-
-        function updateAssignmentsList() {
-            const container = document.querySelector('.card');
-            if (!container) return render();
-            
-            // Réutiliser la même logique que renderAssignmentsTab mais uniquement pour mettre à jour le contenu
-            render();
-        }
-
-        function updateClientProductsList() {
-            const container = document.querySelector('.layout-2col > div:first-child > .card');
-            if (!container) return render();
-            
-            const assignedProducts = appData.products.filter(p => 
-                (appData.assignments[currentUser.id] || []).includes(p.id)
-            );
-            const filteredProducts = filterProducts(assignedProducts, filters.clientProductSearch, filters.clientProductCategory, filters.clientProductSubcategory);
-            const productsByCategory = {};
-            filteredProducts.forEach(p => {
-                if (!productsByCategory[p.category]) {
-                    productsByCategory[p.category] = [];
-                }
-                productsByCategory[p.category].push(p);
-            });
-            
-            let html = `<h2 class="card-title">Vos produits disponibles</h2>`;
-            html += renderFilterBar('clientProductSearch', 'clientProductCategory', 'clientProductSubcategory');
-            
-            if (assignedProducts.length === 0) {
-                html += '<div class="empty-state">Aucun produit ne vous est attribué pour le moment</div>';
-            } else if (filteredProducts.length === 0) {
-                html += '<div class="empty-state">Aucun produit ne correspond à votre recherche</div>';
-            } else {
-                const sortedCategories = Object.keys(productsByCategory).sort();
-                sortedCategories.forEach(category => {
-                    html += `<h3 style="margin: 25px 0 15px 0; color: #15803d; font-size: 20px;">${category}</h3>`;
-                    html += '<div class="grid grid-2">';
-                    productsByCategory[category].forEach(p => {
-                        const qty = getProductQuantityInCart(p.id);
-                        html += `
-                            <div class="product-card">
-                                <div class="product-icon">${p.image}</div>
-                                <div class="product-name">${p.name}</div>
-                                <div class="product-category">${p.subcategory || ''}</div>
-                                <div class="quantity-controls">
-                                    <button class="quantity-btn" onclick="updateQuantity('${p.id}', -1)">−</button>
-                                    ${editingQuantity === p.id ? 
-                                        `<input type="number" class="quantity-input" id="qty-${p.id}" value="${qty}" 
-                                            onblur="saveQuantity('${p.id}', this.value)" 
-                                            onkeypress="if(event.key==='Enter') saveQuantity('${p.id}', this.value)">` :
-                                        `<div class="quantity-display" onclick="startEditingQuantity('${p.id}')">${qty} ${p.unit}</div>`
-                                    }
-                                    <button class="quantity-btn" onclick="updateQuantity('${p.id}', 1)">+</button>
-                                </div>
-                            </div>`;
-                    });
-                    html += '</div>';
-                });
-            }
-            
-            if (filteredProducts.length < assignedProducts.length) {
-                html += `<p style="text-align: center; color: #6b7280; margin-top: 20px; font-size: 14px;">
-                    ${assignedProducts.length - filteredProducts.length} produit(s) masqué(s) par les filtres
-                </p>`;
-            }
-            
-            container.innerHTML = html;
-        }
 
         function filterClients(clients, searchTerm) {
             if (!searchTerm) return clients;
@@ -2353,14 +2192,20 @@
                     <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">
                         🔍 Rechercher
                     </label>
-                    <input 
-                        type="text" 
-                        id="filter-${searchFilterName}"
-                        value="${filters[searchFilterName]}"
-                        oninput="updateFilter('${searchFilterName}', this.value)"
-                        placeholder="${placeholder}"
-                        style="width: 100%;"
-                    >
+                    <div class="search-wrapper">
+                        <input 
+                            type="text" 
+                            id="filter-${searchFilterName}"
+                            value="${filters[searchFilterName]}"
+                            oninput="updateFilter('${searchFilterName}', this.value, false)"
+                            onblur="updateFilter('${searchFilterName}', this.value, true)"
+                            onkeypress="if(event.key==='Enter') updateFilter('${searchFilterName}', this.value, true)"
+                            placeholder="${placeholder}"
+                        >
+                        <button class="search-btn" onclick="updateFilter('${searchFilterName}', document.getElementById('filter-${searchFilterName}').value, true)">
+                            🔍 Rechercher
+                        </button>
+                    </div>
                 </div>
             `;
         }
@@ -2376,14 +2221,20 @@
                             <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">
                                 🔍 Rechercher un produit
                             </label>
-                            <input 
-                                type="text" 
-                                id="filter-${searchFilterName}"
-                                value="${filters[searchFilterName]}"
-                                oninput="updateFilter('${searchFilterName}', this.value)"
-                                placeholder="Tapez le nom d'un produit..."
-                                style="width: 100%;"
-                            >
+                            <div class="search-wrapper">
+                                <input 
+                                    type="text" 
+                                    id="filter-${searchFilterName}"
+                                    value="${filters[searchFilterName]}"
+                                    oninput="updateFilter('${searchFilterName}', this.value, false)"
+                                    onblur="updateFilter('${searchFilterName}', this.value, true)"
+                                    onkeypress="if(event.key==='Enter') updateFilter('${searchFilterName}', this.value, true)"
+                                    placeholder="Tapez le nom d'un produit..."
+                                >
+                                <button class="search-btn" onclick="updateFilter('${searchFilterName}', document.getElementById('filter-${searchFilterName}').value, true)">
+                                    🔍 Rechercher
+                                </button>
+                            </div>
                         </div>
                         <div>
                             <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">

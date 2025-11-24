@@ -1081,6 +1081,17 @@
                 return;
             }
 
+            // Sauvegarder l'élément actif et sa position de curseur avant le render
+            const activeElement = document.activeElement;
+            let savedSelection = null;
+            if (activeElement && activeElement.tagName === 'INPUT' && activeElement.id && activeElement.id.startsWith('filter-')) {
+                savedSelection = {
+                    id: activeElement.id,
+                    selectionStart: activeElement.selectionStart,
+                    selectionEnd: activeElement.selectionEnd
+                };
+            }
+
             if (!currentUser) {
                 app.innerHTML = renderLogin();
             } else if (currentUser.role === 'admin') {
@@ -1089,7 +1100,16 @@
                 app.innerHTML = renderClient();
             }
             
-            if (activeFilterInput) {
+            // Restaurer le focus et la position du curseur après le render
+            if (savedSelection) {
+                setTimeout(() => {
+                    const input = document.getElementById(savedSelection.id);
+                    if (input) {
+                        input.focus();
+                        input.setSelectionRange(savedSelection.selectionStart, savedSelection.selectionEnd);
+                    }
+                }, 0);
+            } else if (activeFilterInput) {
                 const input = document.getElementById(activeFilterInput);
                 if (input) {
                     setTimeout(() => {
@@ -2102,7 +2122,11 @@
 
         function updateFilter(filterName, value) {
     filters[filterName] = value;
-    activeFilterInput = 'filter-' + filterName;
+    
+    // Ne définir activeFilterInput que pour les filtres non-search (boutons, etc.)
+    if (!filterName.includes('Search')) {
+        activeFilterInput = 'filter-' + filterName;
+    }
     
     // Reset subcategory when category changes
     if (filterName === 'productCategory') {
